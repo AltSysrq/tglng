@@ -1,0 +1,227 @@
+TglNG -- Text Generation Language, Next Generation
+
+----
+
+TglNG (pronounced "tag-along") is an interpreter for terse, ad-hoc text
+generation programs. It is made to fill the same role as Tgl, taking into
+account lessons learned from the latter.
+
+BASIC CONCEPTS
+
+Every TglNG program consists of a command tree. A command is simply a reference
+to code which results in a string value; it generally also tracks other
+commands which it uses for inputs, thus forming the aforementioned tree. After
+parsing, the top-most command is executed, and its result is written to
+stdout. This stands in contrast to Tgl, which required the user to manually
+write to standard output.
+
+Each command defines its own way of interpreting the characters which follow it
+in the input; this allows for significantly more expressiveness than was
+possible in Tgl.
+
+CHARACTERS and STRINGS
+
+TglNG defines a "character" to be a single wchar_t. On systems like most
+GNU/Linux systems, this is always correct. However, on systems (like Windows)
+where wchar_t is used to store UTF-16, TglNG will not handle surrogate pairs,
+instead assuming the text is encoded in UCS-2. This is generally not an issue,
+unless you want to use Egyptian Heiroglyphics.
+
+A "string" is any number of "character"s, with no constrains placed on the
+characters within.
+
+A "name-char" is any character whose numerical value is above U+0021.
+
+PARSING
+
+All input code is parsed before execution. When a command is parsed, the
+command is provided with two inputs:
+o The command tree which precedes the command being parsed.
+o The characters from the command to the end of the string.
+If the command parses successfully, it results in:
+o The new command-tree which represents the combined inputs.
+o The characters which remain to be parsed.
+
+To make use of TglNG as fluid as possible, there are three modes of command
+parsing:
+o Verbatim mode. Every individual character is recognised as the self-insert
+  command.
+o Literal mode. The configured escape character (default `) is recognised as
+  the single-command command, and all others are the self-insert command.
+o Command mode. Every character is looked up as the command bound to it, except
+  for the escape character, which is assumed to be self-insert, and
+  space/control characters, which are implicitly the no-op command.
+
+EXECUTION
+
+When parsing completes successfully, the top-most command is executed and its
+result printed, if successful. While TglNG tries to be more declarative in
+nature --- such that execution order would not matter --- it does have some
+imperative features. Therefore, most commands will perform strict left-to-right
+evaluation when not dictated otherwise by the user.
+
+REGISTERS
+
+The TglNG interpreter allows the user to define any number of registers, each
+bound to a single name-char. At any given time, a defined register holds
+exactly one arbitrary string. Attempting to read from an undefined register is
+an error.
+
+NUMBERS
+
+Any string matching the following regular expression is considered a number by
+TglNG (not case-sensitive):
+  \s*[+-]?([0-9]+|0x[0-9A-F]+|0o[0-7]+|0b[01]+)\s*
+
+The usual interpretations apply; 0x indicates hexadecimal, 0o octal, and 0b
+binary. The interpreter uses the C int type to store integers, so be wary of
+overflows when performing arithmetic on large values.
+
+BOOLEANS
+
+A string is considered boolean false if it is the empty string or if it is a
+valid integer representation of zero. Any other string is considered true.
+
+STANDARD ARGUMENTS
+
+While every command defines its own syntax, most of them share the same syntax
+for parsing their arguments. In all cases, leading whitespace is skipped.
+
+Numeric (N):
+Identified by a digit, '+', or '-'. Reads in characters which constitute a
+single integer (see the NUMBERS section) until a non-number character, or a
+sign beyond the first character, is encountered.
+
+Register (R):
+Not identifiable; when multiple argument types are possible, Register is always
+the last one tried. A register argument is simply a single name-char.
+
+Command (C):
+Not identifiable; when multiple argument types are possible, Command is always
+the last one tried. A command arguemnt is a single command which is parsed in
+its entirety.
+
+Section (S):
+Identified by one of the characters described below. A section refers to one or
+two "captured" command trees. Each section has a left and right part; the left
+part, if present, is the command tree to the right of the command being parsed,
+and is thus not sensitive to the parsing mode of the section argument; the
+right part, if present, is the result of parsing text to the right of the
+section argument.
+
+Arithmetic (A):
+An arithmetic argument is either a numeric which does not start with a sign, or
+a command.
+
+Character (H):
+A single character.
+
+The section argument proper is a single character:
+< Captures only the left command tree for this section.
+> Captures all text to the right of the argument and parses it using the
+  current parsing mode.
+: Parses one command to the right in command mode, and uses that as the right
+  part of the section.
+| Captures the left command tree as well as all text to the right of the
+  argument; the right part is parsed in literal mode.
+( Captures text to the right of the command, parsing it in comand mode, until a
+  close-paren ) command is parsed at top-level.
+[ Captures text to the right of the command, parsing it in literal mode, until
+  a close-bracket ] command is parsed at top-level.
+{ Captures text to the right of the command, parsing it in verbatim mode. Stops
+  when the matching } (allowing braces, but no other characters, to nest) is
+  found.
+$ Uses the next name-char after the argument as a register name. The section's
+  right-hand part is a command-tree which results in that register's content.
+
+BUILTIN COMMANDS
+
+Every command has a "long name", which is (by convention) a string describing
+what the command does, words separated by hyphens. Commands may be bound to
+"short names", which are single name-chars recognised by the parser. Unless
+otherwise noted, the short name for a command listed below is simply assigned
+in the defaul configuration.
+
+Each command description specifies its arguments in up to three ways:
+o Types: A single character indicating the standard argument type.
+o Regexen: A regex of characters that will match, enclosed in /slashes/.
+o Literal characters: A string inside "double quotes" which matches the
+  character(s) exactly.
+
+If a colon and a name follows an arument specifier, whatever matched the
+argument is named by that name in the command description. If an equals and a
+value follows a name, the value is the default if the argument is
+omitted. Unquoted parentheses and brackets indicate grouping; brackets
+additionally indicate optionality. An unquoted pipe indcates different
+possibilities.
+
+Unless otherwise noted, any command's result is implicitly appended to the
+result of the left-hand code, unless the left-hand is captured by a section.
+
+long-command    #       /[^#]+#/:command-name
+Executes command-name (excluding the tailing '#') by looking it up by its long
+name and parsing the matching command as if the trailing '#' were its short
+name. The short name of this command is hard-wired, since it would otherwise be
+impossible to call any commands.
+
+self-insert     (none)  none
+Results in a one-character string which is the same as the apparent short name
+of the command.
+
+single-command  (none)  C:command
+Parses text to the right as a single command in command mode, and results in
+that command's result.
+
+command-mode    (       ...:commands
+Parses commands to the right in command mode, until parsing is terminated by a
+close-paren. If parsing terminates for any other reason, it is an error.
+
+close-paren     )       (none)
+Terminates parsing due to closing parenthesis.
+
+literal-mode    [       ...:commands
+Parses commands to the right in literal mode, until parsing is terminated by a
+close-bracket. It is an error if parsing terminates for any other reason.
+
+close-bracket   ]       (none)
+Terminates parsing due to closing bracket.
+
+verbatim-mode   {       ...}:text
+Results in the literal text between the braces. Brace is counting is performed
+so that braces nest as expected.
+
+if              i       S:condition S:then [S:else={}]
+If the result of condition is true, return the result of evaluating then;
+otherwise, return the result of evaluating else (default an empty string).
+
+false-coalesce  I       S:test S:otherwise
+If the result of test is true, result in that; otherwise, evaluate otherwise
+and use its result.
+
+for-integer     f       [N:limit=10 [R:reg=i [N:init=0 [N:inc=auto]]]] S:body
+
+for-int-print   F       [N:limit=10 [R:reg=i [N:init=0 [N:inc=auto]]]] S:body
+
+for-each        e       [R+:regs=p] ["/" /[a-zA-Z0-9]+/:opts=""] S:list S:body
+
+for-each-print E        [R+:regs=p] ["/" /[a-zA-Z0-9]+/:opts=""] S:list S:body
+
+read-reg       $        R:register
+
+write-reg      @        R:register A:value
+
+num-add        +        A A
+num-sub        -        A A
+num-mul        *        A A
+num-div        /        A A
+num-mod        %        A A
+
+meta            (none)  (none)
+Results in a string containing only the escape character.
+
+set-meta        (none)  H:escape
+Sets the escape character to the given one.
+
+bind            (none)  /[^#]+#/:name H:shortname
+Binds the command whose name is name (without the trailing hash) to the
+character specified by shortname.
