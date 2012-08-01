@@ -11,3 +11,8 @@ Makefile
 config.h
 *.in
 m4
+aclocal.m4
+missing
+install-sh
+depcomp
+configure
