@@ -125,6 +125,26 @@ namespace tglng {
      * Returns true if all was successful, false otherwise.
      */
     bool exec(std::wstring& out, std::wistream& in, ParseMode);
+
+    /**
+     * Registers the given CommandParser* to the globally-predifined map. This
+     * will only affect new Interpreters. The CommandParser* will never be
+     * freed.
+     */
+    static void bindGlobal(const std::wstring&, CommandParser*);
+  };
+
+  /**
+   * Used to set up an automatic global binding.
+   *
+   * Usage: static GlobalBinding<MyCommandParserClass> smnam("symbolic-name");
+   */
+  template<typename ParserClass>
+  class GlobalBinding {
+  public:
+    GlobalBinding(const std::wstring& name) {
+      Interpreter::bindGlobal(name, new ParserClass());
+    }
   };
 }
 
