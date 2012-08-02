@@ -9,6 +9,7 @@
 #include <cstring>
 #include <cerrno>
 #include <iostream>
+#include <iomanip>
 
 #include "interp.hxx"
 #include "command.hxx"
@@ -184,5 +185,20 @@ namespace tglng {
     }
 
     return exec(out, text, mode);
+  }
+
+  void Interpreter::error(const wstring& why,
+                          const wstring& what, unsigned where) {
+    wcerr << L"tglng: error: " << why << endl;
+    //Grab up to 16 characters of context on either side
+    unsigned contextStart = (where > 16? where - 16 : 0);
+    unsigned contextEnd = (where + 16 < what.size()? where + 16 : what.size());
+    wstring context = what.substr(contextStart, contextEnd);
+    //Transliterate all whitespace to normal spaces
+    for (unsigned i = 0; i < context.size(); ++i)
+      if (iswspace(context[i]))
+        context[i] = ' ';
+    wcerr << L"  " << context << endl;
+    wcerr << setw(2+contextStart+1) << L"^" << endl;
   }
 }
