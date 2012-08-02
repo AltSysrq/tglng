@@ -20,7 +20,7 @@ using namespace std;
 namespace tglng {
   // This is a pointer since global bindings may be set up before this
   // compilation unit's initialisers run.
-  static map<wstring,CommandParser*>* globalDefaulBindings = NULL;
+  static map<wstring,CommandParser*>* globalDefaultBindings = NULL;
 
   // Proxies to another CommandParser which it does not own.
   class ProxyCommandParser: public CommandParser {
@@ -38,7 +38,7 @@ namespace tglng {
     const map<wstring,CommandParser*>* defaults
   ) {
     map<wstring,CommandParser*> ret;
-    if (globalDefaulBindings) {
+    if (globalDefaultBindings) {
       for (map<wstring,CommandParser*>::const_iterator it = defaults->begin();
            it != defaults->end(); ++it)
         ret[it->first] = new ProxyCommandParser(it->second);
@@ -55,7 +55,7 @@ namespace tglng {
   }
 
   Interpreter::Interpreter()
-  : commandsL(cloneProxyBindings(globalDefaulBindings)),
+  : commandsL(cloneProxyBindings(globalDefaultBindings)),
     commandsS(makeDefaultCommandsS(commandsL)),
     escape(L'`')
   {
@@ -200,5 +200,16 @@ namespace tglng {
         context[i] = ' ';
     wcerr << L"  " << context << endl;
     wcerr << setw(2+contextStart+1) << L"^" << endl;
+  }
+
+  void Interpreter::bindGlobal(const wstring& name, CommandParser* parser) {
+    //Initialise global list if this hasn't happened
+    static bool hasInit = false;
+    if (!hasInit) {
+      hasInit = true;
+      globalDefaultBindings = new map<wstring,CommandParser*>;
+    }
+
+    (*globalDefaultBindings)[name] = parser;
   }
 }
