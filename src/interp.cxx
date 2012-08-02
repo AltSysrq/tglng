@@ -5,10 +5,12 @@
 #include <string>
 #include <map>
 #include <cctype>
+#include <cstdlib>
 #include <iostream>
 
 #include "interp.hxx"
 #include "command.hxx"
+#include "common.hxx"
 
 using namespace std;
 
@@ -68,5 +70,62 @@ namespace tglng {
     for (map<wstring,CommandParser*>::const_iterator it = commandsL.begin();
          it != commandsL.end(); ++it)
       delete it->second;
+  }
+
+  ParseResult Interpreter::parse(Command*& out,
+                                 const wstring& text,
+                                 unsigned& offset,
+                                 ParseMode mode) {
+    if (offset >= text.size())
+      return StopEndOfInput;
+
+    switch (mode) {
+    case ParseModeLiteral:
+      if (text[offset] != escape) {
+    case ParseModeVerbatim:
+        error(L"Don't know how to create self-insert command yet.",
+              text, offset);
+        return ParseError;
+      } else {
+        ++offset;
+    case ParseModeCommand:
+        //Skip leading whitespace
+        while (offset < text.size() && iswspace(text[offset]))
+          ++offset;
+
+        //If we hit the end, it's OK in command mode but an error in literal
+        //mode (since this came right after an escape).
+        if (offset >= text.size()) {
+          if (mode == ParseModeCommand)
+            return StopEndOfInput;
+          else {
+            error(L"Expected command after escape character.", text, offset);
+            return ParseError;
+          }
+        }
+
+        CommandParser* parser;
+        if (text[offset] == escape) {
+          error(L"Don't know how to create self-insert command yet.",
+                text, offset);
+          return ParseError;
+        } else {
+          map<wchar_t,CommandParser*>::const_iterator it =
+            commandsS.find(text[offset]);
+          if (it == commandsS.end()) {
+            error(L"Unknown command.", text, offset);
+            return ParseError;
+          }
+
+          parser = it->second;
+        }
+
+        return parser->parse(*this, out, text, offset);
+      }
+    }
+
+    //Shouldn't get here
+    cerr << "FATAL: Unexpected value of mode to Interpreter::parse()." << endl;
+    exit(EXIT_THE_SKY_IS_FALLING);
   }
 }

@@ -127,6 +127,18 @@ namespace tglng {
     bool exec(std::wstring& out, std::wistream& in, ParseMode);
 
     /**
+     * Prints a diagnostic message to stderr, showing the given error message
+     * as well as context around where the error occurred in the code.
+     *
+     * @param why The error message to display.
+     * @param what The code that was being parsed.
+     * @param where The index within what where the error occurred.
+     */
+    static void error(const std::wstring& why,
+                      const std::wstring& what,
+                      unsigned where);
+
+    /**
      * Registers the given CommandParser* to the globally-predifined map. This
      * will only affect new Interpreters. The CommandParser* will never be
      * freed.
