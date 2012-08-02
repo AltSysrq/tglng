@@ -136,11 +136,6 @@ namespace tglng {
                                     const wstring& text,
                                     unsigned& offset,
                                     ParseMode mode) {
-    if (!out) {
-      error(L"Don't know how to create no-op Command yet.", text, offset);
-      return ParseError;
-    }
-
     ParseResult result;
     while (!(result = parse(out, text, offset, mode)));
 
@@ -148,7 +143,12 @@ namespace tglng {
   }
 
   bool Interpreter::exec(wstring& out, Command* cmd) {
-    return cmd->exec(out, *this);
+    if (cmd)
+      return cmd->exec(out, *this);
+    else {
+      out = L"";
+      return true;
+    }
   }
 
   bool Interpreter::exec(wstring& out, const wstring& text, ParseMode mode) {
