@@ -6,6 +6,8 @@
 #include <map>
 #include <cctype>
 #include <cstdlib>
+#include <cstring>
+#include <cerrno>
 #include <iostream>
 
 #include "interp.hxx"
@@ -142,5 +144,45 @@ namespace tglng {
     while (!(result = parse(out, text, offset, mode)));
 
     return result;
+  }
+
+  bool Interpreter::exec(wstring& out, Command* cmd) {
+    return cmd->exec(out, *this);
+  }
+
+  bool Interpreter::exec(wstring& out, const wstring& text, ParseMode mode) {
+    Command* root = NULL;
+    unsigned offset = 0;
+    switch (parseAll(root, text, offset, mode)) {
+    case ContinueParsing: //Shouldn't happen
+    case StopEndOfInput:
+      break; //OK
+
+    case StopCloseParen:
+    case StopCloseBracket:
+    case StopCloseBrace:
+      error(L"Unexpected closing parentheses, bracket, or brace.",
+            text, offset);
+      return false;
+
+    case ParseError:
+      return false;
+    }
+
+    return exec(out, root);
+  }
+
+  bool Interpreter::exec(wstring& out, wistream& in, ParseMode mode) {
+    wstring text;
+
+    //Read all text to EOF (either real or UNIX)
+    getline(in, text, L'\4');
+
+    if (in.fail()) {
+      cerr << "Error reading input stream: " << strerror(errno) << endl;
+      return false;
+    }
+
+    return exec(out, text, mode);
   }
 }

@@ -50,7 +50,7 @@ namespace tglng {
      * if successful.
      * @return True if execution was successful, false otherwise.
      */
-    virtual bool exec(Interpreter& interp, std::wstring& out) = 0;
+    virtual bool exec(std::wstring& out, Interpreter& interp) = 0;
   };
 }
 
