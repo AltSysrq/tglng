@@ -128,4 +128,19 @@ namespace tglng {
     cerr << "FATAL: Unexpected value of mode to Interpreter::parse()." << endl;
     exit(EXIT_THE_SKY_IS_FALLING);
   }
+
+  ParseResult Interpreter::parseAll(Command*& out,
+                                    const wstring& text,
+                                    unsigned& offset,
+                                    ParseMode mode) {
+    if (!out) {
+      error(L"Don't know how to create no-op Command yet.", text, offset);
+      return ParseError;
+    }
+
+    ParseResult result;
+    while (!(result = parse(out, text, offset, mode)));
+
+    return result;
+  }
 }

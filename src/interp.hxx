@@ -103,7 +103,7 @@ namespace tglng {
      * ParseError if an unknown short command was encountered, or
      * StopEndOfInput if the end of the string was reached.
      */
-    ParseResult parseAll(Command*& out, const std::wstring& text, unsigned off,
+    ParseResult parseAll(Command*& out, const std::wstring& text, unsigned& off,
                          ParseMode mode);
 
     /**
