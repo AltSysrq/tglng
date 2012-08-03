@@ -57,7 +57,12 @@ namespace tglng {
 
   bool CommandArgument::get(Command*& out) {
     out = NULL;
-    return interp.parse(out, text, offset, Interpreter::ParseModeCommand);
+    if (interp.parse(out, text, offset, Interpreter::ParseModeCommand))
+      return true;
+    else {
+      interp.error(L"Invalid integer.", text, offset);
+      return false;
+    }
   }
 
   bool SectionArgument::match() {
@@ -219,9 +224,11 @@ namespace tglng {
     if (fst >= L'0' && fst <= L'9') {
       unsigned start = offset;
       signed discard;
-      if (!parseInteger(discard, text, start, &offset))
+      if (!parseInteger(discard, text, start, &offset)) {
         //Invalid integer
+        interp.error(L"Invalid integer.", text, offset);
         return false;
+      }
       //Valid integer, but keep the original string representation in case it
       //matters
       //TODO: dst = new SelfInsert(text.substr(start, offset-start));
