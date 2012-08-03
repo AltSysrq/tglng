@@ -1,0 +1,6 @@
+#bind#section-command#(
+#bind#section-command#[
+#bind#section-command#{
+#bind#close-brace#}
+#bind#close-bracket#]
+#bind#close-paren#)
