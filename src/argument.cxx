@@ -169,7 +169,8 @@ namespace tglng {
         goto fail;
       }
 
-      out.right = new SelfInsertCommand(NULL, text.substr(start,offset-start));
+      out.right = new SelfInsertCommand(NULL, text.substr(start,
+                                                          offset-start-1));
       return true;
     }
 
