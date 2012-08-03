@@ -66,6 +66,11 @@ namespace tglng {
     }
   }
 
+  AutoSection::~AutoSection() {
+    if (left) delete left;
+    if (right) delete right;
+  }
+
   bool SectionArgument::match() {
     if (!Argument::match()) return false;
 

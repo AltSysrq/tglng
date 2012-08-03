@@ -74,6 +74,14 @@ namespace tglng {
     Command* left, * right;
   };
   /**
+   * Section subclass which deletes the commands on destruction.
+   */
+  struct AutoSection: public Section {
+    AutoSection() : Section() {}
+    AutoSection(const Section& that) : Section(that) {}
+    ~AutoSection();
+  };
+  /**
    * Extracts a Section argument type from input.
    */
   class SectionArgument: public Argument {

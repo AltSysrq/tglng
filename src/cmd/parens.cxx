@@ -15,7 +15,7 @@ namespace tglng {
    * Simple command which just executes a Section.
    */
   class SectionCommand: public Command {
-    Section section;
+    AutoSection section;
 
   public:
     SectionCommand(Command* left, Section sec)
