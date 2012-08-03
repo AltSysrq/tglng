@@ -63,4 +63,34 @@ namespace tglng {
   };
 
   static GlobalBinding<LongCommandParser> _longCommandParser(L"long-command");
+
+  class BindParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp, Command*& out,
+                              const std::wstring& text,
+                              unsigned& offset) {
+      wstring longName;
+      wchar_t shortName;
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(), a.to(longName, L'#'), a.h(shortName)])
+        return ParseError;
+
+      //Look the long command up
+      map<wstring, CommandParser*>::const_iterator it =
+        interp.commandsL.find(longName);
+      if (it == interp.commandsL.end()) {
+        interp.error(wstring(L"Unknown command: ") + longName, text, offset-2);
+        return ParseError;
+      }
+
+      //Save the new binding, replacing anything that was there before.
+      //Since commandsS doesn't own the CommandParser*s, we don't need to check
+      //this.
+      interp.commandsS[shortName] = it->second;
+      //There is no actual command associated with bind; just leave out alone.
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<BindParser> _bindParser(L"bind");
 }
