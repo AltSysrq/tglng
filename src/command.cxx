@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include "command.hxx"
+
 namespace tglng {
   Command::Command(Command* left_)
   : left(left_)
