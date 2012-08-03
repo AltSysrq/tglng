@@ -113,7 +113,11 @@ namespace tglng {
         CommandParser* parser;
         if (text[offset] == escape) {
           static SelfInsertParser selfInsertParser;
-          parser = &selfInsertParser;
+          static NullParser nullParser;
+          if (mode == ParseModeLiteral)
+            parser = &selfInsertParser;
+          else
+            parser = &nullParser;
         } else {
           map<wchar_t,CommandParser*>::const_iterator it =
             commandsS.find(text[offset]);

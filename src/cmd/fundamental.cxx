@@ -95,4 +95,14 @@ namespace tglng {
   };
 
   static GlobalBinding<BindParser> _bindParser(L"bind");
+
+  ParseResult NullParser::parse(Interpreter& interp,
+                                Command*&,
+                                const wstring&,
+                                unsigned& offset) {
+    ++offset;
+    return ContinueParsing;
+  }
+
+  static GlobalBinding<NullParser> _nullParser(L"no-op");
 }

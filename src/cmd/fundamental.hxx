@@ -34,6 +34,18 @@ namespace tglng {
     virtual ParseResult parse(Interpreter&, Command*&,
                               const std::wstring&, unsigned& offset);
   };
+
+  /**
+   * Do-nothing parser.
+   *
+   * On parse, it simply skips the command character, causing the command to be
+   * treated as a no-op.
+   */
+  class NullParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter&, Command*&,
+                              const std::wstring&, unsigned& offset);
+  };
 }
 
 #endif /* CMD_FUNDAMENTAL_HXX_ */

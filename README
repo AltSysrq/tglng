@@ -49,8 +49,8 @@ o Verbatim mode. Every individual character is recognised as the self-insert
 o Literal mode. The configured escape character (default `) is recognised as
   the single-command command, and all others are the self-insert command.
 o Command mode. Every character is looked up as the command bound to it, except
-  for the escape character, which is assumed to be self-insert, and
-  space/control characters, which are implicitly the no-op command.
+  for the escape character, which is assumed to be no-op, and space/control
+  characters, which are implicitly the no-op command.
 
 EXECUTION
 
