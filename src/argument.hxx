@@ -11,10 +11,12 @@ namespace tglng {
    * Encapsulates the data and basic semantics for argument extraction.
    */
   class Argument {
-  protected:
+  public:
     Interpreter& interp;
     const std::wstring& text;
     unsigned& offset;
+
+  protected:
     Command*& left;
 
     Argument(Interpreter&, const std::wstring&, unsigned&, Command*&);
@@ -165,6 +167,10 @@ namespace tglng {
 
     bool match() { return it.match(); }
     bool get() { return it.get(dst); }
+
+    Interpreter& interp() { return it.interp; }
+    const std::wstring& text() { return it.text; }
+    unsigned offset() { return it.offset; }
   };
 
   /**
@@ -180,7 +186,19 @@ namespace tglng {
     : first(f), rest(r) {}
 
     bool match() { return first.match(); }
-    bool get() { return first.get() && rest.match() && rest.get(); }
+    bool get() {
+      if (!first.get()) return false;
+      if (!rest.match()) {
+        interp().error(L"Could not match next part of argument sequence.",
+                       text(), offset());
+        return false;
+      }
+      return rest.get();
+    }
+
+    Interpreter& interp() { return first.interp(); }
+    const std::wstring& text() { return first.text(); }
+    unsigned offset() { return first.offset(); }
   };
 
   /**
@@ -198,6 +216,10 @@ namespace tglng {
 
     bool match() { return first.match() || rest.match(); }
     bool get() { return first.match()? first.get() : rest.get(); }
+
+    Interpreter& interp() { return first.interp(); }
+    const std::wstring& text() { return first.text(); }
+    unsigned offset() { return first.offset(); }
   };
 
   /**
@@ -212,6 +234,10 @@ namespace tglng {
 
     bool match() { return true; }
     bool get() { return !it.match() || it.get(); }
+
+    Interpreter& interp() { return it.interp(); }
+    const std::wstring& text() { return it.text(); }
+    unsigned offset() { return it.offset(); }
   };
 
   /**
@@ -261,6 +287,7 @@ namespace tglng {
     Interpreter& interp;
     const std::wstring& text;
     unsigned& offset;
+    unsigned startingOffset;
     Command*& left;
 
   public:
@@ -314,14 +341,20 @@ namespace tglng {
      */
     template<typename T>
     bool operator[](T& t) {
-      if (!t.match() || !t.get()) {
-        diagnostic();
+      if (!t.match()) {
+        diagnosticUnmatched();
         return false;
-      } else return true;
+      }
+      if (!t.get()) {
+        diagnosticParseError();
+        return false;
+      }
+      return true;
     }
 
   private:
-    void diagnostic();
+    void diagnosticUnmatched() const;
+    void diagnosticParseError() const;
   };
 }
 

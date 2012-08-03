@@ -252,4 +252,108 @@ namespace tglng {
     ++offset;
     return true;
   }
+
+  ArgumentParser::ArgumentParser(Interpreter& interp_,
+                                 const wstring& text_,
+                                 unsigned& offset_,
+                                 Command*& left_)
+  : interp(interp_), text(text_),
+    offset(offset_), startingOffset(offset),
+    left(left_)
+  { }
+
+  ArgumentSyntaxSugar<ArgumentExtractor<CharArgument> >
+  ArgumentParser::h() {
+    static wchar_t ignore;
+    return ArgumentSyntaxSugar<ArgumentExtractor<CharArgument> >(
+      ArgumentExtractor<CharArgument>(
+        CharArgument(interp, text, offset, left),
+        ignore));
+  }
+
+  ArgumentSyntaxSugar<ArgumentExtractor<CharArgument> >
+  ArgumentParser::h(wchar_t& dst) {
+    return ArgumentSyntaxSugar<ArgumentExtractor<CharArgument> >(
+      ArgumentExtractor<CharArgument>(
+        CharArgument(interp, text, offset, left),
+        dst));
+  }
+
+  ArgumentSyntaxSugar<ArgumentExtractor<NumericArgument> >
+  ArgumentParser::n(signed& dst) {
+    return ArgumentSyntaxSugar<ArgumentExtractor<NumericArgument> >(
+      ArgumentExtractor<NumericArgument>(
+        NumericArgument(interp, text, offset, left),
+        dst));
+  }
+
+  ArgumentSyntaxSugar<ArgumentExtractor<ArithmeticArgument> >
+  ArgumentParser::a(Command*& dst) {
+    return ArgumentSyntaxSugar<ArgumentExtractor<ArithmeticArgument> >(
+      ArgumentExtractor<ArithmeticArgument>(
+        ArithmeticArgument(interp, text, offset, left),
+        dst));
+  }
+
+  ArgumentSyntaxSugar<ArgumentExtractor<SectionArgument> >
+  ArgumentParser::s(Section& dst) {
+    return ArgumentSyntaxSugar<ArgumentExtractor<SectionArgument> >(
+      ArgumentExtractor<SectionArgument>(
+        SectionArgument(interp, text, offset, left),
+        dst));
+  }
+
+  ArgumentSyntaxSugar<ArgumentExtractor<SentinelStringArgument> >
+  ArgumentParser::to(wstring& dst, wchar_t sentinel) {
+    return ArgumentSyntaxSugar<ArgumentExtractor<SentinelStringArgument> >(
+      ArgumentExtractor<SentinelStringArgument>(
+        SentinelStringArgument(interp, text, offset, left, sentinel),
+        dst));
+  }
+
+  ArgumentSyntaxSugar<ArgumentExtractor<AlnumStringArgument> >
+  ArgumentParser::an(wstring& dst) {
+    return ArgumentSyntaxSugar<ArgumentExtractor<AlnumStringArgument> >(
+      ArgumentExtractor<AlnumStringArgument>(
+        AlnumStringArgument(interp, text, offset, left),
+        dst));
+  }
+
+  ArgumentSyntaxSugar<ArgumentExtractor<NonSectionStringArgument> >
+  ArgumentParser::ns(wstring& dst) {
+    return ArgumentSyntaxSugar<ArgumentExtractor<NonSectionStringArgument> >(
+      ArgumentExtractor<NonSectionStringArgument>(
+        NonSectionStringArgument(interp, text, offset, left),
+        dst));
+  }
+
+  ArgumentSyntaxSugar<ArgumentExtractor<ExactCharacterArgument> >
+  ArgumentParser::x(bool& dst, wchar_t expect) {
+    return ArgumentSyntaxSugar<ArgumentExtractor<ExactCharacterArgument> >(
+      ArgumentExtractor<ExactCharacterArgument>(
+        ExactCharacterArgument(interp, text, offset, left, expect),
+        dst));
+  }
+
+  ArgumentSyntaxSugar<ArgumentExtractor<ExactCharacterArgument> >
+  ArgumentParser::x(wchar_t expect) {
+    static bool ignore;
+    return x(ignore, expect);
+  }
+
+  ArgumentSyntaxSugar<ArgumentExtractor<CommandArgument> >
+  ArgumentParser::c(Command*& dst) {
+    return ArgumentSyntaxSugar<ArgumentExtractor<CommandArgument> >(
+      ArgumentExtractor<CommandArgument>(
+        CommandArgument(interp, text, offset, left),
+        dst));
+  }
+
+  void ArgumentParser::diagnosticUnmatched() const {
+    interp.error(L"Could not match initial argument.", text, offset);
+  }
+
+  void ArgumentParser::diagnosticParseError() const {
+    interp.error(L"Error reading argument for command.", text, startingOffset);
+  }
 }
