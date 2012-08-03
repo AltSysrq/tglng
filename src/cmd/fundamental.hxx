@@ -25,6 +25,15 @@ namespace tglng {
 
     virtual bool exec(std::wstring&, Interpreter&);
   };
+
+  /**
+   * Parser for SelfInsertCommand.
+   */
+  class SelfInsertParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter&, Command*&,
+                              const std::wstring&, unsigned& offset);
+  };
 }
 
 #endif /* CMD_FUNDAMENTAL_HXX_ */

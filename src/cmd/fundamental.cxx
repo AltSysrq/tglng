@@ -27,4 +27,11 @@ namespace tglng {
     dst = value;
     return true;
   }
+
+  ParseResult SelfInsertParser::parse(Interpreter&, Command*& out,
+                                      const std::wstring& text,
+                                      unsigned& offset) {
+    out = new SelfInsertCommand(out, text[offset++]);
+    return ContinueParsing;
+  }
 }

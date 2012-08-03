@@ -9,6 +9,7 @@
 
 #include "argument.hxx"
 #include "interp.hxx"
+#include "cmd/fundamental.hxx"
 #include "common.hxx"
 
 using namespace std;
@@ -123,9 +124,7 @@ namespace tglng {
 
       if (cnt) return false; //Unbalanced brace
 
-      //TODO: out.right = new SelfInsert(text.substr(start,offset-start));
-      cerr << "FATAL: Don't know how to do brace section yet!" << endl;
-      exit(EXIT_THE_SKY_IS_FALLING);
+      out.right = new SelfInsertCommand(NULL, text.substr(start,offset-start));
       return true;
     }
 
@@ -231,10 +230,7 @@ namespace tglng {
       }
       //Valid integer, but keep the original string representation in case it
       //matters
-      //TODO: dst = new SelfInsert(text.substr(start, offset-start));
-      cerr << "FATAL: Don't know how to wrap numeric literal arithmetic yet."
-           << endl;
-      exit(EXIT_THE_SKY_IS_FALLING);
+      dst = new SelfInsertCommand(NULL, text.substr(start, offset-start));
       return true;
     } else {
       return interp.parse(dst, text, offset, Interpreter::ParseModeCommand);

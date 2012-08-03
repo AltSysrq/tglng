@@ -14,6 +14,7 @@
 
 #include "interp.hxx"
 #include "command.hxx"
+#include "cmd/fundamental.hxx"
 #include "common.hxx"
 
 using namespace std;
@@ -87,9 +88,8 @@ namespace tglng {
     case ParseModeLiteral:
       if (text[offset] != escape) {
     case ParseModeVerbatim:
-        error(L"Don't know how to create self-insert command yet.",
-              text, offset);
-        return ParseError;
+        out = new SelfInsertCommand(out, text[offset++]);
+        return ContinueParsing;
       } else {
         ++offset;
     case ParseModeCommand:
@@ -110,9 +110,8 @@ namespace tglng {
 
         CommandParser* parser;
         if (text[offset] == escape) {
-          error(L"Don't know how to create self-insert command yet.",
-                text, offset);
-          return ParseError;
+          static SelfInsertParser selfInsertParser;
+          parser = &selfInsertParser;
         } else {
           map<wchar_t,CommandParser*>::const_iterator it =
             commandsS.find(text[offset]);
