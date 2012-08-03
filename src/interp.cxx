@@ -172,7 +172,7 @@ namespace tglng {
     case StopCloseBracket:
     case StopCloseBrace:
       error(L"Unexpected closing parentheses, bracket, or brace.",
-            text, offset);
+            text, offset-1 /* -1 for back to command char */);
       return false;
 
     case ParseError:
