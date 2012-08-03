@@ -208,7 +208,7 @@ namespace tglng {
       if (iswspace(context[i]))
         context[i] = ' ';
     wcerr << L"  " << context << endl;
-    wcerr << setw(2+contextStart+1) << L"^" << endl;
+    wcerr << setw(2+where-contextStart+1) << L"^" << endl;
   }
 
   void Interpreter::bindGlobal(const wstring& name, CommandParser* parser) {
