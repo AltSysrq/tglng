@@ -18,6 +18,10 @@ namespace tglng {
   class Interpreter {
     //Not defined
     Interpreter(const Interpreter&);
+
+    //Holds the starting index of the most recently-parsed command.
+    unsigned backupDest;
+
   public:
     /**
      * Maps wstrings to CommandParser*s used to interperet the commands. These
@@ -105,6 +109,16 @@ namespace tglng {
      */
     ParseResult parseAll(Command*& out, const std::wstring& text, unsigned& off,
                          ParseMode mode);
+
+    /**
+     * "Backs up" the given offset to the index immediately before the most
+     * recently-parsed command.
+     *
+     * This is used, for example, when a closing paren (or similar) is
+     * encountered in a context where the current parser cannot handle it, but
+     * where it is also not an error, such as in the > section type.
+     */
+    void backup(unsigned&) const;
 
     /**
      * Executes the given command in this interpreter, storing the result in

@@ -73,6 +73,7 @@ namespace tglng {
   }
 
   bool SectionArgument::get(Section& out) {
+    ParseResult result;
     out.left = out.right = NULL;
 
     switch (text[offset++]) {
@@ -82,33 +83,73 @@ namespace tglng {
       return true;
 
     case L'>':
-      return interp.parseAll(out.right, text, offset,
-                              Interpreter::ParseModeLiteral) != ParseError;
+      result = interp.parseAll(out.right, text, offset,
+                               Interpreter::ParseModeLiteral);
+      if (result == ParseError) return false;
+      if (result == StopCloseParen ||
+          result == StopCloseBracket ||
+          result == StopCloseBrace)
+        //We can't handle the closing chacter, but the caller can.
+        interp.backup(offset);
+      return true;
 
     case L':':
-      return interp.parse(out.right, text, offset,
-                           Interpreter::ParseModeCommand) == ContinueParsing;
+      result = interp.parse(out.right, text, offset,
+                            Interpreter::ParseModeCommand);
+      if (result == ContinueParsing)
+        return true;
+
+      if (result == StopEndOfInput)
+        interp.error(L"Expected command.", text, offset);
+      if (result == StopCloseParen)
+        interp.error(L"Unexpected closing parenthisis.", text, offset-1);
+      if (result == StopCloseBracket)
+        interp.error(L"Unexpected closing bracket.", text, offset-1);
+      if (result == StopCloseBrace)
+        interp.error(L"Unexpected closing brace.", text, offset-1);
+      goto fail;
 
     case L'|':
       out.left = left;
-      if (interp.parseAll(out.right, text, offset,
-                           Interpreter::ParseModeLiteral) != ParseError) {
+      result = interp.parseAll(out.right, text, offset,
+                               Interpreter::ParseModeLiteral);
+      if (result != ParseError) {
         //Success, may nullify left then return
         left = NULL;
+        //If it was a closing paren (or similar), backup so that the parent
+        //parser can handle it.
+        if (result == StopCloseParen ||
+            result == StopCloseBracket ||
+            result == StopCloseBrace)
+          interp.backup(offset);
         return true;
       } else {
         //Since we are failing, out is considered to be meaningless. Thus we
         //cannot nullify left, since it is still the caller's responsibility.
-        return false;
+        goto fail;
       }
 
     case L'(':
-      return interp.parseAll(out.right, text, offset,
-                              Interpreter::ParseModeCommand) == StopCloseParen;
+      result = interp.parseAll(out.right, text, offset,
+                               Interpreter::ParseModeCommand);
+      if (result == ParseError) goto fail;
+      if (result != StopCloseParen) {
+        interp.error(L"Expected closing parenthisis.",
+                     text, offset - (result == StopEndOfInput? 0 : 1));
+        goto fail;
+      }
+      return true;
 
     case L'[':
-      return interp.parseAll(out.right, text, offset,
-                              Interpreter::ParseModeLiteral) ==StopCloseBracket;
+      result = interp.parseAll(out.right, text, offset,
+                               Interpreter::ParseModeLiteral);
+      if (result == ParseError) goto fail;
+      if (result != StopCloseBracket) {
+        interp.error(L"Expected closing bracket.",
+                     text, offset - (result == StopEndOfInput? 0 : 1));
+        goto fail;
+      }
+      return true;
 
     case L'{': {
       //ParseModeVerbatim would consume the entire rest of the string, so do
@@ -122,7 +163,11 @@ namespace tglng {
           --cnt;
       //After the loop, offset is one past the closing brace
 
-      if (cnt) return false; //Unbalanced brace
+      if (cnt) {
+        //Unbalanced brace
+        interp.error(L"Unbalanced brace.", text, offset);
+        goto fail;
+      }
 
       out.right = new SelfInsertCommand(NULL, text.substr(start,offset-start));
       return true;
@@ -131,7 +176,7 @@ namespace tglng {
     case L'$':
       while (offset < text.size() && iswspace(text[offset])) ++offset;
 
-      if (offset >= text.size()) return false;
+      if (offset >= text.size()) goto fail;
 
       //TODO: out.right = new RegisterRead(text[offset++]);
       cerr << "FATAL: Don't know how to do register section yet!" << endl;
@@ -141,6 +186,13 @@ namespace tglng {
 
     wcerr << L"FATAL: Unandled section type: " << text[offset-1] << endl;
     exit(EXIT_THE_SKY_IS_FALLING);
+
+    fail:
+    //Free and nullify any partial results, then return failure.
+    if (out.left) delete out.left;
+    if (out.right) delete out.right;
+    out.left = out.right = NULL;
+    return false;
   }
 
   SentinelStringArgument::SentinelStringArgument(Interpreter& interp,

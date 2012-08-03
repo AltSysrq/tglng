@@ -84,6 +84,8 @@ namespace tglng {
     if (offset >= text.size())
       return StopEndOfInput;
 
+    backupDest = offset;
+
     switch (mode) {
     case ParseModeLiteral:
       if (text[offset] != escape) {
@@ -140,6 +142,10 @@ namespace tglng {
     while (!(result = parse(out, text, offset, mode)));
 
     return result;
+  }
+
+  void Interpreter::backup(unsigned& ix) const {
+    ix = backupDest;
   }
 
   bool Interpreter::exec(wstring& out, Command* cmd) {
