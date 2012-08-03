@@ -164,9 +164,12 @@ name and parsing the matching command as if the trailing '#' were its short
 name. The short name of this command is hard-wired, since it would otherwise be
 impossible to call any commands.
 
-self-insert     (none)  none
+self-insert     (none)  (none)
 Results in a one-character string which is the same as the apparent short name
 of the command.
+
+no-op           (none)  (none)
+Results in the empty string.
 
 section-command {[(      ...:commands
 Treats its own character as a section argument, and executes that section.
