@@ -168,10 +168,6 @@ self-insert     (none)  none
 Results in a one-character string which is the same as the apparent short name
 of the command.
 
-single-command  (none)  C:command
-Parses text to the right as a single command in command mode, and results in
-that command's result.
-
 command-mode    (       ...:commands
 Parses commands to the right in command mode, until parsing is terminated by a
 close-paren. If parsing terminates for any other reason, it is an error.
