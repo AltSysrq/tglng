@@ -3,6 +3,7 @@
 #endif
 
 #include <string>
+#include <list>
 #include <map>
 #include <cctype>
 #include <cstdlib>
@@ -143,12 +144,21 @@ namespace tglng {
   }
 
   bool Interpreter::exec(wstring& out, Command* cmd) {
-    if (cmd)
-      return cmd->exec(out, *this);
-    else {
-      out = L"";
-      return true;
+    //Reverse Command::left linked list so we don't need to recurse
+    list<Command*> lhs;
+    for (Command* curr = cmd; curr; curr = curr->left)
+      lhs.push_front(curr);
+    //Accumulate result
+    out.clear();
+    wstring result;
+    for (list<Command*>::const_iterator it = lhs.begin();
+         it != lhs.end(); ++it) {
+      if (!(*it)->exec(result, *this))
+        return false;
+      out += result;
     }
+
+    return true;
   }
 
   bool Interpreter::exec(wstring& out, const wstring& text, ParseMode mode) {

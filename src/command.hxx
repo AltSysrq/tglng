@@ -40,15 +40,32 @@ namespace tglng {
    */
   class Command {
   public:
-    virtual ~Command() {}
     /**
-     * Executes this command.
+     * The Command-tree to the left of this command, or NULL if there is
+     * nothing.
+     *
+     * This value belongs to this Command, and will be deleted when it is.
+     */
+    Command*const left;
+
+  protected:
+    /**
+     * Constructs the Command with the given left-hand tree.
+     */
+    Command(Command*);
+
+  public:
+    virtual ~Command();
+    /**
+     * Executes this command. Calling Interpreter::exec() is preferred to this
+     * function, as it handles the left-hand code tree as well.
      *
      * @param interp The Interpreter in which the Command is running.
      * @param out The result string. Its contents are undefined on input. The
      * Command may modify its value arbitrarily; the output value only matters
      * if successful.
      * @return True if execution was successful, false otherwise.
+     * @see Interpreter::exec(std::wstring&, Command*)
      */
     virtual bool exec(std::wstring& out, Interpreter& interp) = 0;
   };

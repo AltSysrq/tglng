@@ -108,9 +108,9 @@ namespace tglng {
 
     /**
      * Executes the given command in this interpreter, storing the result in
-     * out. This is mostly equivalent to calling Command::exec(), but works for
-     * the NULL Command (which results in an empty string). Returns true if
-     * successful, false otherwise.
+     * out. This is similar to Command::exec(), but also executes the
+     * Command::left fields appropriately (which does not require
+     * recursion). Returns true if successful, false otherwise.
      */
     bool exec(std::wstring& out, Command*);
     /**
