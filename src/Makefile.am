@@ -1,2 +1,6 @@
 bin_PROGRAMS = tglng
-tglng_SOURCES = tglng.cxx interp.cxx common.cxx
+tglng_SOURCES = \
+ tglng.cxx \
+ interp.cxx \
+ common.cxx \
+ argument.cxx

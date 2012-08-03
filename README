@@ -118,8 +118,8 @@ A single character.
 
 The section argument proper is a single character:
 < Captures only the left command tree for this section.
-> Captures all text to the right of the argument and parses it using the
-  current parsing mode.
+> Captures all text to the right of the argument and parses it in literal
+  mode.
 : Parses one command to the right in command mode, and uses that as the right
   part of the section.
 | Captures the left command tree as well as all text to the right of the
