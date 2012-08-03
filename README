@@ -168,23 +168,14 @@ self-insert     (none)  none
 Results in a one-character string which is the same as the apparent short name
 of the command.
 
-command-mode    (       ...:commands
-Parses commands to the right in command mode, until parsing is terminated by a
-close-paren. If parsing terminates for any other reason, it is an error.
+section-command {[(      ...:commands
+Treats its own character as a section argument, and executes that section.
 
 close-paren     )       (none)
 Terminates parsing due to closing parenthesis.
 
-literal-mode    [       ...:commands
-Parses commands to the right in literal mode, until parsing is terminated by a
-close-bracket. It is an error if parsing terminates for any other reason.
-
 close-bracket   ]       (none)
 Terminates parsing due to closing bracket.
-
-verbatim-mode   {       ...}:text
-Results in the literal text between the braces. Brace is counting is performed
-so that braces nest as expected.
 
 if              i       S:condition S:then [S:else={}]
 If the result of condition is true, return the result of evaluating then;
