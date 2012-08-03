@@ -241,12 +241,36 @@ namespace tglng {
   };
 
   /**
+   * Wraps an ArgumentExtractor-compatible class to save the offset when
+   * parsing started.
+   */
+  template<typename T>
+  class SaveArgumentOffset {
+    T it;
+    unsigned& dst;
+
+  public:
+    SaveArgumentOffset(const T& t, unsigned& u) : it(t), dst(u) {}
+
+    bool match() { return it.match(); }
+    bool get() {
+      dst = offset();
+      return it.get();
+    }
+
+    Interpreter& interp() { return it.interp(); }
+    const std::wstring& text() { return it.text(); }
+    unsigned offset() { return it.offset(); }
+  };
+
+  /**
    * Adds operators to ArgumentExtractor which give a nice syntax sugar for
    * compound arguments:
    *
    *   arg1, arg2  -> ArgumentSequence<arg1,arg2>
    *   arg1 | arg2 -> ArgumentOptions<arg1,arg2>
    *   -arg1       -> OptionalArgument<arg1>
+   *   arg >> off  -> SaveArgumentOffset<arg>(off)
    */
   template<typename Contained>
   class ArgumentSyntaxSugar {
@@ -291,6 +315,12 @@ namespace tglng {
     operator-() const {
       return ArgumentSyntaxSugar<OptionalArgument<Contained> >(
         OptionalArgument<Contained>(it));
+    }
+
+    ArgumentSyntaxSugar<SaveArgumentOffset<Contained> >
+    operator>>(unsigned& dst) const {
+      return ArgumentSyntaxSugar<SaveArgumentOffset<Contained> >(
+        SaveArgumentOffset<Contained>(it, dst));
     }
   };
 

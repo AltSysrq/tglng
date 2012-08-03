@@ -44,8 +44,9 @@ namespace tglng {
                               const std::wstring& text,
                               unsigned& offset) {
       wstring name;
+      unsigned nameStart;
       ArgumentParser a(interp, text, offset, out);
-      if (!a[a.h(), a.to(name, L'#')]) return ParseError;
+      if (!a[a.h(), a.to(name, L'#') >> nameStart]) return ParseError;
 
       //Move back to the closing hash, since that is the effective character
       //for the command.
@@ -54,7 +55,7 @@ namespace tglng {
       map<wstring,CommandParser*>::const_iterator it =
         interp.commandsL.find(name);
       if (it == interp.commandsL.end()) {
-        interp.error(wstring(L"Unknown command: ") + name, text, offset);
+        interp.error(wstring(L"Unknown command: ") + name, text, nameStart);
         return ParseError;
       }
 
@@ -71,15 +72,16 @@ namespace tglng {
                               unsigned& offset) {
       wstring longName;
       wchar_t shortName;
+      unsigned nameStart;
       ArgumentParser a(interp, text, offset, out);
-      if (!a[a.h(), a.to(longName, L'#'), a.h(shortName)])
+      if (!a[a.h(), a.to(longName, L'#') >> nameStart, a.h(shortName)])
         return ParseError;
 
       //Look the long command up
       map<wstring, CommandParser*>::const_iterator it =
         interp.commandsL.find(longName);
       if (it == interp.commandsL.end()) {
-        interp.error(wstring(L"Unknown command: ") + longName, text, offset-2);
+        interp.error(wstring(L"Unknown command: ") + longName, text, nameStart);
         return ParseError;
       }
 
