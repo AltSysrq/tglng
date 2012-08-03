@@ -250,9 +250,11 @@ namespace tglng {
    */
   template<typename Contained>
   class ArgumentSyntaxSugar {
+  public:
     Contained it;
 
-  public:
+    typedef Contained contained_t;
+
     ArgumentSyntaxSugar(const Contained& t)
     : it(t) {}
 
@@ -260,17 +262,29 @@ namespace tglng {
     bool get() { return it.get(); }
 
     template<typename Next>
-    ArgumentSyntaxSugar<ArgumentSequence<Contained, Next> >
+    ArgumentSyntaxSugar<ArgumentSequence<Contained,
+                                         typename Next::contained_t> >
     operator,(const Next& next) const {
-      return ArgumentSyntaxSugar<ArgumentSequence<Contained, Next> >(
-        ArgumentSequence<Contained,Next>(it, next));
+      return
+        ArgumentSyntaxSugar<
+          ArgumentSequence<
+            Contained,
+            typename Next::contained_t> >(
+              ArgumentSequence<Contained,typename Next::contained_t>(it,
+                                                                     next.it));
     }
 
     template<typename Other>
-    ArgumentSyntaxSugar<ArgumentOptions<Contained, Other> >
+    ArgumentSyntaxSugar<ArgumentOptions<Contained,
+                                        typename Other::contained_t> >
     operator|(const Other& other) const {
-      return ArgumentSyntaxSugar<ArgumentOptions<Contained, Other> >(
-        ArgumentOptions<Contained,Other>(it, other));
+      return
+        ArgumentSyntaxSugar<
+          ArgumentOptions<
+            Contained,
+            typename Other::contained_t> >(
+              ArgumentOptions<Contained,
+                              typename Other::contained_t>(it, other.it));
     }
 
     ArgumentSyntaxSugar<OptionalArgument<Contained> >
@@ -340,7 +354,8 @@ namespace tglng {
      * and returns false.
      */
     template<typename T>
-    bool operator[](T& t) {
+    bool operator[](const T& t_) {
+      T t(t_);
       if (!t.match()) {
         diagnosticUnmatched();
         return false;
