@@ -183,13 +183,17 @@ namespace tglng {
     case StopCloseBrace:
       error(L"Unexpected closing parentheses, bracket, or brace.",
             text, offset-1 /* -1 for back to command char */);
+      if (root) delete root;
       return false;
 
     case ParseError:
+      if (root) delete root;
       return false;
     }
 
-    return exec(out, root);
+    bool res = exec(out, root);
+    delete root;
+    return res;
   }
 
   bool Interpreter::exec(wstring& out, wistream& in, ParseMode mode) {
