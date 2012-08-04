@@ -241,3 +241,6 @@ Sets the escape character to the given one.
 bind            (none)  /[^#]+#/:name H:shortname
 Binds the command whose name is name (without the trailing hash) to the
 character specified by shortname.
+
+ensemble-new    (none)  /[^#]+#/:name
+ensemble-bind   (none)  /[^#]+#/:ensemble-name /[^#]+#/:command-name H:shortname
