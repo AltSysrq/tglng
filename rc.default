@@ -13,7 +13,7 @@
 #bind#num-mod#%
 #bind#num-slt#<
 #bind#num-sgt#>
-#bind#num-equ#=
+#bind#str-equ#=
 #bind#logical-or#|
 #bind#logical-and#&
 #bind#logical-not#!

@@ -9,4 +9,5 @@ tglng_SOURCES = \
  cmd/parens.cxx \
  cmd/registers.cxx \
  cmd/arithmetic.cxx \
- cmd/logical.cxx
+ cmd/logical.cxx \
+ cmd/strings.cxx
