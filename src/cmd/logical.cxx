@@ -20,8 +20,8 @@ namespace tglng {
 
   public:
     LogicalCommand(Command* left,
-                   auto_ptr<Command> l,
-                   auto_ptr<Command> r)
+                   auto_ptr<Command>& l,
+                   auto_ptr<Command>& r)
     : Command(left), lhs(l), rhs(r)
     { }
 
@@ -71,4 +71,36 @@ namespace tglng {
   static GlobalBinding<LogicalParser<LogicalAnd> > _andParser(L"logical-and");
   static GlobalBinding<LogicalParser<LogicalOr > >  _orParser(L"logical-or");
   static GlobalBinding<LogicalParser<LogicalXor> > _xorParser(L"logical-xor");
+
+  class LogicalNot: public Command {
+    auto_ptr<Command> sub;
+
+  public:
+    LogicalNot(Command* left, auto_ptr<Command>& s)
+    : Command(left), sub(s) {}
+
+    virtual bool exec(wstring& out, Interpreter& interp) {
+      wstring tmp;
+      if (!interp.exec(tmp, sub.get())) return false;
+
+      out = (!parseBool(tmp)? L"1" : L"0");
+      return true;
+    }
+  };
+
+  class LogicalNotParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp, Command*& out,
+                              const wstring& text,
+                              unsigned& offset) {
+      auto_ptr<Command> sub;
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(), a.a(sub)]) return ParseError;
+
+      out = new LogicalNot(out, sub);
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<LogicalNotParser> _notParser(L"logical-not");
 }
