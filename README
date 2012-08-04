@@ -207,6 +207,16 @@ num-sub        -        A A
 num-mul        *        A A
 num-div        /        A A
 num-mod        %        A A
+num-equ        =        A A
+num-neq        (none)   A A
+num-slt        <        A A
+num-sgt        >        A A
+num-leq        (none)   A A
+num-geq        (none)   A A
+logical-and    &        A A
+logical-or     |        A A
+logical-xor    (none)   A A
+logical-not    !        A
 
 meta            (none)  (none)
 Results in a string containing only the escape character.
