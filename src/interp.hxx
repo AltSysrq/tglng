@@ -159,6 +159,13 @@ namespace tglng {
      * freed.
      */
     static void bindGlobal(const std::wstring&, CommandParser*);
+
+    /**
+     * Releases all global bindings.
+     *
+     * This should only be done at program shutdown.
+     */
+    static void freeGlobalBindings();
   };
 
   /**

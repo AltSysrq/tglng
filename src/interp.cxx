@@ -235,4 +235,13 @@ namespace tglng {
 
     (*globalDefaultBindings)[name] = parser;
   }
+
+  void Interpreter::freeGlobalBindings() {
+    for (map<wstring,CommandParser*>::iterator it =
+           globalDefaultBindings->begin();
+         it != globalDefaultBindings->end(); ++it)
+      delete it->second;
+    delete globalDefaultBindings;
+    globalDefaultBindings = NULL;
+  }
 }

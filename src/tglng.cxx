@@ -27,6 +27,7 @@ int main(int argc, const char*const* argv) {
 
   if (interp.exec(out, wcin, Interpreter::ParseModeLiteral)) {
     wcout << out;
+    Interpreter::freeGlobalBindings();
     return 0;
   } else {
     wcerr << L"Failed." << endl;
