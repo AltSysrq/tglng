@@ -6,6 +6,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 
 #include "argument.hxx"
 #include "interp.hxx"
@@ -53,17 +54,21 @@ namespace tglng {
   }
 
   bool NumericArgument::get(signed& out) {
-    return parseInteger(out, text, offset, &offset);
-  }
-
-  bool CommandArgument::get(Command*& out) {
-    out = NULL;
-    if (interp.parse(out, text, offset, Interpreter::ParseModeCommand))
+    if (parseInteger(out, text, offset, &offset))
       return true;
     else {
       interp.error(L"Invalid integer.", text, offset);
       return false;
     }
+  }
+
+  bool CommandArgument::get(auto_ptr<Command>& out) {
+    Command* res = NULL;
+    if (interp.parse(res, text, offset, Interpreter::ParseModeCommand) ==
+        ContinueParsing) {
+      out.reset(res);
+      return true;
+    } else return false;
   }
 
   AutoSection::~AutoSection() {
@@ -276,7 +281,7 @@ namespace tglng {
     return true;
   }
 
-  bool ArithmeticArgument::get(Command*& dst) {
+  bool ArithmeticArgument::get(auto_ptr<Command>& dst) {
     wchar_t fst = text[offset];
     if (fst >= L'0' && fst <= L'9') {
       unsigned start = offset;
@@ -288,10 +293,15 @@ namespace tglng {
       }
       //Valid integer, but keep the original string representation in case it
       //matters
-      dst = new SelfInsertCommand(NULL, text.substr(start, offset-start));
+      dst.reset(new SelfInsertCommand(NULL, text.substr(start, offset-start)));
       return true;
     } else {
-      return interp.parse(dst, text, offset, Interpreter::ParseModeCommand);
+      Command* res = NULL;
+      if (interp.parse(res, text, offset, Interpreter::ParseModeCommand) ==
+          ContinueParsing) {
+        dst.reset(res);
+        return true;
+      } else return false;
     }
   }
 
@@ -349,7 +359,7 @@ namespace tglng {
   }
 
   ArgumentSyntaxSugar<ArgumentExtractor<ArithmeticArgument> >
-  ArgumentParser::a(Command*& dst) {
+  ArgumentParser::a(auto_ptr<Command>& dst) {
     return ArgumentSyntaxSugar<ArgumentExtractor<ArithmeticArgument> >(
       ArgumentExtractor<ArithmeticArgument>(
         ArithmeticArgument(interp, text, offset, left),
@@ -403,7 +413,7 @@ namespace tglng {
   }
 
   ArgumentSyntaxSugar<ArgumentExtractor<CommandArgument> >
-  ArgumentParser::c(Command*& dst) {
+  ArgumentParser::c(auto_ptr<Command>& dst) {
     return ArgumentSyntaxSugar<ArgumentExtractor<CommandArgument> >(
       ArgumentExtractor<CommandArgument>(
         CommandArgument(interp, text, offset, left),

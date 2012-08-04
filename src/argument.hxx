@@ -2,6 +2,7 @@
 #define ARGUMENT_HXX_
 
 #include <string>
+#include <memory>
 
 namespace tglng {
   class Command;
@@ -63,7 +64,7 @@ namespace tglng {
   class CommandArgument: public Argument {
   public:
     CTOR(Command)
-    typedef Command* get_t;
+    typedef std::auto_ptr<Command> get_t;
     bool get(get_t&);
   };
 
@@ -141,7 +142,7 @@ namespace tglng {
   class ArithmeticArgument: public Argument {
   public:
     CTOR(Arithmetic)
-    typedef Command* get_t;
+    typedef std::auto_ptr<Command> get_t;
     bool get(get_t&);
   };
 
@@ -361,7 +362,8 @@ namespace tglng {
     ArgumentSyntaxSugar<ArgumentExtractor<NumericArgument> > n(signed&);
     ///Returns a wrapped ArithmeticArgument storing the Command* into the given
     ///destination.
-    ArgumentSyntaxSugar<ArgumentExtractor<ArithmeticArgument> > a(Command*&);
+    ArgumentSyntaxSugar<ArgumentExtractor<ArithmeticArgument> >
+    a(std::auto_ptr<Command>&);
     ///Returns a wrapped SectionArgument storing the Section into the given
     ///destination.
     ArgumentSyntaxSugar<ArgumentExtractor<SectionArgument> > s(Section&);
@@ -385,7 +387,8 @@ namespace tglng {
     ArgumentSyntaxSugar<ArgumentExtractor<ExactCharacterArgument> >
     x(bool&, wchar_t);
     ///Returns a CommandArgument storing the command into the given destination.
-    ArgumentSyntaxSugar<ArgumentExtractor<CommandArgument> > c(Command*&);
+    ArgumentSyntaxSugar<ArgumentExtractor<CommandArgument> >
+    c(std::auto_ptr<Command>&);
 
     /**
      * Tries to match the given compound argument agains the input. If matching

@@ -4,6 +4,7 @@
 
 #include <string>
 #include <iostream>
+#include <memory>
 
 #include "registers.hxx"
 #include "../interp.hxx"
@@ -31,19 +32,18 @@ namespace tglng {
 
   class WriteRegister: public Command {
     wchar_t reg;
-    AutoSection section;
+    auto_ptr<Command> sub;
 
   public:
-    WriteRegister(Command* left, wchar_t r, Section s)
-    : Command(left), reg(r), section(s)
+    WriteRegister(Command* left, wchar_t r, auto_ptr<Command>& s)
+    : Command(left), reg(r), sub(s)
     { }
 
     virtual bool exec(wstring& dst, Interpreter& interp) {
-      wstring left, right;
-      if (!interp.exec(left, section.left)) return false;
-      if (!interp.exec(right, section.right)) return false;
+      wstring res;
+      if (!interp.exec(res, sub.get())) return false;
 
-      interp.registers[reg] = left+right;
+      interp.registers[reg] = res;
       dst = L"";
       return true;
     }
@@ -82,13 +82,12 @@ namespace tglng {
   public:
     virtual ParseResult parse(Interpreter& interp, Command*& out,
                               const wstring& text, unsigned& offset) {
-      AutoSection section;
+      auto_ptr<Command> sub;
       wchar_t reg;
       ArgumentParser a(interp, text, offset, out);
-      if (!a[a.h(), a.h(reg), a.s(section)]) return ParseError;
+      if (!a[a.h(), a.h(reg), a.c(sub)]) return ParseError;
 
-      out = new WriteRegister(out, reg, section);
-      section.clear();
+      out = new WriteRegister(out, reg, sub);
       return ContinueParsing;
     }
   };
