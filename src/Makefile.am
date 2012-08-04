@@ -7,4 +7,5 @@ tglng_SOURCES = \
  command.cxx \
  cmd/fundamental.cxx \
  cmd/parens.cxx \
- cmd/registers.cxx
+ cmd/registers.cxx \
+ cmd/arithmetic.cxx
