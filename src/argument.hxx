@@ -233,6 +233,39 @@ namespace tglng {
   };
 
   /**
+   * Wraps two ArgumentExtractor-compatible classes into a sequence in which
+   * the first item is only used if needed. That is, it First is only
+   * considered if Rest does not match the start of the sequence.
+   */
+  template<typename First, typename Rest>
+  class ConservativeSequence {
+    First first;
+    Rest rest;
+
+  public:
+    ConservativeSequence(const First& f, const Rest& r)
+    : first(f), rest(r) {}
+
+    bool match() { return rest.match() || first.match(); }
+    bool get() {
+      if (rest.match())
+        return rest.get();
+
+      if (!first.get()) return false;
+      if (!rest.match()) {
+        interp().error(L"Could not match next part of argument sequence.",
+                       text(), offset());
+        return false;
+      }
+      return rest.get();
+    }
+
+    Interpreter& interp() { return first.interp(); }
+    const std::wstring& text() { return first.text(); }
+    unsigned offset() { return first.offset(); }
+  };
+
+  /**
    * Wraps an ArgumentExtractor-compatible class to make it optional.
    */
   template<typename T>
@@ -279,6 +312,7 @@ namespace tglng {
    *
    *   arg1, arg2  -> ArgumentSequence<arg1,arg2>
    *   arg1 | arg2 -> ArgumentOptions<arg1,arg2>
+   *   arg1 -= arg2-> ConservativeSequence<arg1,arg2>
    *   -arg1       -> OptionalArgument<arg1>
    *   arg >> off  -> SaveArgumentOffset<arg>(off)
    */
@@ -306,6 +340,19 @@ namespace tglng {
             typename Next::contained_t> >(
               ArgumentSequence<Contained,typename Next::contained_t>(it,
                                                                      next.it));
+    }
+
+    template<typename Next>
+    ArgumentSyntaxSugar<ConservativeSequence<Contained,
+                                             typename Next::contained_t> >
+    operator-=(const Next& next) const {
+      return
+        ArgumentSyntaxSugar<
+          ConservativeSequence<
+            Contained,
+            typename Next::contained_t> >(
+              ConservativeSequence<Contained,typename Next::contained_t>(
+                it, next.it));
     }
 
     template<typename Other>
