@@ -200,6 +200,8 @@ read-reg       r        R:register
 
 write-reg      @        R:register A:value
 
+unset-reg      (none)   R:register
+
 num-add        +        A A
 num-sub        -        A A
 num-mul        *        A A
