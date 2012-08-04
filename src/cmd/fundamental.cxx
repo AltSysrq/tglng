@@ -105,4 +105,32 @@ namespace tglng {
   }
 
   static GlobalBinding<NullParser> _nullParser(L"no-op");
+
+  class MetaParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp,
+                              Command*& out,
+                              const wstring& text,
+                              unsigned& offset) {
+      ++offset; //Past command char
+      out = new SelfInsertCommand(out, interp.escape);
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<MetaParser> _metaParser(L"meta");
+
+  class SetMetaParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp,
+                              Command*& out,
+                              const wstring& text,
+                              unsigned& offset) {
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(), a.h(interp.escape)]) return ParseError;
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<SetMetaParser> _setMetaParser(L"set-meta");
 }
