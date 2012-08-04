@@ -55,7 +55,7 @@ namespace tglng {
       map<wstring,CommandParser*>::const_iterator it =
         interp.commandsL.find(name);
       if (it == interp.commandsL.end()) {
-        interp.error(wstring(L"Unknown command: ") + name, text, nameStart);
+        interp.error(wstring(L"No such command: ") + name, text, nameStart);
         return ParseError;
       }
 
@@ -81,7 +81,7 @@ namespace tglng {
       map<wstring, CommandParser*>::const_iterator it =
         interp.commandsL.find(longName);
       if (it == interp.commandsL.end()) {
-        interp.error(wstring(L"Unknown command: ") + longName, text, nameStart);
+        interp.error(wstring(L"No such command: ") + longName, text, nameStart);
         return ParseError;
       }
 

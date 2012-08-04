@@ -45,7 +45,8 @@ namespace tglng {
       map<wchar_t, CommandParser*>::const_iterator it =
         commands.find(subcommand);
       if (it == commands.end()) {
-        interp.error(L"Unknown ensemble subcommand.", text, newOffset);
+        interp.error(wstring(L"No such ensemble subcommand: ") + subcommand,
+                     text, newOffset);
         return ParseError;
       }
 
@@ -68,7 +69,8 @@ namespace tglng {
       if (!a[a.h(), a.to(name, L'#') >> nameOffset]) return ParseError;
 
       if (interp.commandsL.count(name)) {
-        interp.error(L"Command name alread in use.", text, nameOffset);
+        interp.error(wstring(L"Command name already in use: ") + name,
+                     text, nameOffset);
         return ParseError;
       }
 
@@ -97,14 +99,14 @@ namespace tglng {
       ensembles_t::const_iterator eit =
         ensembles.find(make_pair(&interp, ename));
       if (eit == ensembles.end()) {
-        interp.error(L"No such ensemble.", text, enameOffset);
+        interp.error(wstring(L"No such ensemble: ") + ename, text, enameOffset);
         return ParseError;
       }
 
       map<wstring,CommandParser*>::const_iterator cit =
         interp.commandsL.find(cname);
       if (cit == interp.commandsL.end()) {
-        interp.error(L"No such command.", text, cnameOffset);
+        interp.error(wstring(L"No such command: ") + cname, text, cnameOffset);
         return ParseError;
       }
 

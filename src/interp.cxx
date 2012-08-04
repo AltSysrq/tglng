@@ -122,7 +122,7 @@ namespace tglng {
           map<wchar_t,CommandParser*>::const_iterator it =
             commandsS.find(text[offset]);
           if (it == commandsS.end()) {
-            error(L"Unknown command.", text, offset);
+            error(wstring(L"No such command: ") + text[offset], text, offset);
             return ParseError;
           }
 
