@@ -6,4 +6,5 @@ tglng_SOURCES = \
  argument.cxx \
  command.cxx \
  cmd/fundamental.cxx \
- cmd/parens.cxx
+ cmd/parens.cxx \
+ cmd/registers.cxx

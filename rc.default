@@ -4,3 +4,5 @@
 #bind#close-brace#}
 #bind#close-bracket#]
 #bind#close-paren#)
+#bind#read-reg#r
+#bind#write-reg#@

@@ -80,6 +80,7 @@ namespace tglng {
     AutoSection() : Section() {}
     AutoSection(const Section& that) : Section(that) {}
     ~AutoSection();
+    inline void clear() { left = right = NULL; }
   };
   /**
    * Extracts a Section argument type from input.
