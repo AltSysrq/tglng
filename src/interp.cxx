@@ -216,7 +216,7 @@ namespace tglng {
     //Grab up to 16 characters of context on either side
     unsigned contextStart = (where > 16? where - 16 : 0);
     unsigned contextEnd = (where + 16 < what.size()? where + 16 : what.size());
-    wstring context = what.substr(contextStart, contextEnd);
+    wstring context = what.substr(contextStart, contextEnd - contextStart);
     //Transliterate all whitespace to normal spaces
     for (unsigned i = 0; i < context.size(); ++i)
       if (iswspace(context[i]))
