@@ -207,7 +207,7 @@ num-sub         -       A A
 num-mul         *       A A
 num-div         /       A A
 num-mod         %       A A
-num-equ         (none)  A A
+num-equ         xn=     A A
 num-neq         (none)  A A
 num-slt         <       A A
 num-sgt         >       A A
@@ -215,15 +215,24 @@ num-leq         (none)  A A
 num-geq         (none)  A A
 logical-and     &       A A
 logical-or      |       A A
-logical-xor     (none)  A A
+logical-xor     xor     A A
 logical-not     !       A
 
 str-equ         =       A A
-str-slt         (none)  A A
-str-sgt         (none)  A A
-str-str         (none)  A A
+str-slt         s<      A A
+str-sgt         s>      A A
+str-str         ss      A A
 str-ix          c       A:begin [A:end | "." A:length] S:string
 str-is          ~       H:type A:string
+str-toupper     sU      A
+str-tolower     sL      A
+str-totitle     sT      A
+str-tosent      sS      A
+str-tocamel     sC      A
+str-topascal    sP      A
+str-toscream    s!      A
+str-tocstyle    s_      A
+str-len         s#      A
 
 defun           (none)  /[^#]+#/:long-name
                         [":" H:short-name = (none)]

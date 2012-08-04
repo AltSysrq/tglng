@@ -17,3 +17,15 @@
 #bind#logical-or#|
 #bind#logical-and#&
 #bind#logical-not#!
+#ensemble-new#string-ops#
+#bind#string-ops#s
+#ensemble-bind#string-ops#str-slt#<
+#ensemble-bind#string-ops#str-sgt#>
+#ensemble-new#secondary-commands#
+#bind#secondary-commands#x
+#ensemble-new#secondary-numeric-ops#
+#ensemble-bind#secondary-commands#secondary-numeric-ops#n
+#ensemble-bind#secondary-numeric-ops#num-equ#=
+#ensemble-new#other-commands#
+#ensemble-bind#secondary-commands#other-commands#o
+#ensemble-bind#other-commands#logical-xor#r
