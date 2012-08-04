@@ -194,29 +194,43 @@ for-int-print   F       [N:limit=10 [R:reg=i [N:init=0 [N:inc=auto]]]] S:body
 
 for-each        e       [R+:regs=p] ["/" /[a-zA-Z0-9]+/:opts=""] S:list S:body
 
-for-each-print E        [R+:regs=p] ["/" /[a-zA-Z0-9]+/:opts=""] S:list S:body
+for-each-print  E       [R+:regs=p] ["/" /[a-zA-Z0-9]+/:opts=""] S:list S:body
 
-read-reg       r        R:register
+read-reg        r       R:register
 
-write-reg      @        R:register A:value
+write-reg       @       R:register A:value
 
-unset-reg      (none)   R:register
+unset-reg       (none)  R:register
 
-num-add        +        A A
-num-sub        -        A A
-num-mul        *        A A
-num-div        /        A A
-num-mod        %        A A
-num-equ        =        A A
-num-neq        (none)   A A
-num-slt        <        A A
-num-sgt        >        A A
-num-leq        (none)   A A
-num-geq        (none)   A A
-logical-and    &        A A
-logical-or     |        A A
-logical-xor    (none)   A A
-logical-not    !        A
+num-add         +       A A
+num-sub         -       A A
+num-mul         *       A A
+num-div         /       A A
+num-mod         %       A A
+num-equ         (none)  A A
+num-neq         (none)  A A
+num-slt         <       A A
+num-sgt         >       A A
+num-leq         (none)  A A
+num-geq         (none)  A A
+logical-and     &       A A
+logical-or      |       A A
+logical-xor     (none)  A A
+logical-not     !       A
+
+str-equ         =       A A
+str-slt         (none)  A A
+str-sgt         (none)  A A
+str-str         (none)  A A
+str-ix          c       A:begin [A:end | "." A:length] S:string
+str-is          ~       H:type A:string
+
+defun           (none)  /[^#]+#/:long-name
+                        [":" H:short-name = (none)]
+                        ["[" /[^\]]*/:outvars="" "]"]
+                        ["(" /[^\)]*/:invars="" ")"]
+                        [/[a-zA-Z0-9]+/:opts=""]
+                        S:body
 
 meta            (none)  (none)
 Results in a string containing only the escape character.
