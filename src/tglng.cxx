@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <clocale>
 
 #include "interp.hxx"
 #include "common.hxx"
@@ -14,6 +15,9 @@ using namespace tglng;
 int main(int argc, const char*const* argv) {
   wstring out;
   Interpreter interp;
+
+  setlocale(LC_ALL, "");
+  setlocale(LC_NUMERIC, "C");
 
   //Try to read from standard configuration file.
   //TODO: Change this to something more sensible
