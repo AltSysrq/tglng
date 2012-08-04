@@ -6,3 +6,11 @@
 #bind#close-paren#)
 #bind#read-reg#r
 #bind#write-reg#@
+#bind#num-add#+
+#bind#num-sub#-
+#bind#num-mul#*
+#bind#num-div#/
+#bind#num-mod#%
+#bind#num-slt#<
+#bind#num-sgt#>
+#bind#num-equ#=
