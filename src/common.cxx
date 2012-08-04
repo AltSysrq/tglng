@@ -6,6 +6,8 @@
 #include <cctype>
 #include <iostream>
 
+#include "common.hxx"
+
 using namespace std;
 
 namespace tglng {
@@ -94,5 +96,13 @@ namespace tglng {
     //If !end, we don't allow trailing garbage; otherwise, we do
     if (end) *end = ix;
     return ix == str.size() || end;
+  }
+
+  bool parseBool(const wstring& str) {
+    signed asNumber;
+    if (parseInteger(asNumber, str))
+      return asNumber != 0;
+    else
+      return str.size() > 0;
   }
 }

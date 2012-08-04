@@ -25,6 +25,17 @@ namespace tglng {
    */
   bool parseInteger(signed& dst, const std::wstring& str,
                     unsigned off = 0, unsigned* end = NULL);
+
+  /**
+   * Parses the given string as a boolean, and returns whether it is considered
+   * true.
+   *
+   * This function always succeeds.
+   *
+   * @param str The string to convert.
+   * @return Whether the string is considered true.
+   */
+  bool parseBool(const std::wstring& str);
 }
 
 #endif /* COMMON_HXX_ */
