@@ -67,7 +67,7 @@ namespace tglng {
     //Digits
     do {
       unsigned value;
-      wchar_t curr = str[ix++];
+      wchar_t curr = str[ix];
 
       if (curr >= L'0' && curr <= L'9')
         value = curr - L'0';
@@ -83,10 +83,12 @@ namespace tglng {
 
       dst *= base;
       dst += value;
+      ++ix;
     } while (ix < str.size());
 
-    //Trailing whitespace
-    while (ix < str.size() && iswspace(str[ix]))
+    //Trailing whitespace.
+    //Don't skip if trailing garbage is allowed.
+    while (ix < str.size() && iswspace(str[ix]) && !end)
       ++ix;
 
     //Sign
