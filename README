@@ -180,6 +180,9 @@ Terminates parsing due to closing parenthesis.
 close-bracket   ]       (none)
 Terminates parsing due to closing bracket.
 
+close-brace     }       (none)
+Terminates parsing due to closing brace.
+
 if              i       S:condition S:then [S:else={}]
 If the result of condition is true, return the result of evaluating then;
 otherwise, return the result of evaluating else (default an empty string).
