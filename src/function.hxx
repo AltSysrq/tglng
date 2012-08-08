@@ -15,9 +15,13 @@ namespace tglng {
    * + It can only take strings as arguments.
    *
    * The arity of a Function is expressed as
-   *   numinputs -> numoutputs
+   *   numoutputs <- numinputs
    * Where numinputs and numoutputs are non-negative integers. Note in
    * particular that a Function may return multiple values.
+   *
+   * Symbolically, a certain type of Function (ie, based on the task it is
+   * expected to perform) is written as
+   *   (output0, output1) <- (input0, input1)
    */
   class Function {
   public:
