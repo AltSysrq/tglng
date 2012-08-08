@@ -8,6 +8,7 @@
 namespace tglng {
   class Interpreter;
   class Command;
+  class Function;
 
   /**
    * Defines a method for converting input text into a Command.
@@ -33,6 +34,17 @@ namespace tglng {
                               Command*& accum,
                               const std::wstring& text,
                               unsigned& offset) = 0;
+
+    /**
+     * Represents the Command type processed by this CommandParser as a
+     * Function, if supported.
+     *
+     * Default returns false.
+     *
+     * @param dst The Function to which to write the representation.
+     * @return Whether this CommandParser supports a Function representation.
+     */
+    virtual bool function(Function& dst) const { return false; }
   };
 
   /**
