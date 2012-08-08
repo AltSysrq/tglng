@@ -40,7 +40,7 @@ namespace tglng {
      * @param interp The Interpreter in which the Function is being run.
      * @return Whether the function succeeded.
      */
-    typedef bool (*exec_t)(std::wstring& out, const std::wstring& in,
+    typedef bool (*exec_t)(std::wstring* out, const std::wstring* in,
                            Interpreter&);
 
     /**
