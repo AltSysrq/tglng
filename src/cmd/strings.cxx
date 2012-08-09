@@ -11,6 +11,7 @@
 #include "../interp.hxx"
 #include "../argument.hxx"
 #include "../common.hxx"
+#include "basic_parsers.hxx"
 
 using namespace std;
 
@@ -332,4 +333,21 @@ namespace tglng {
   };
 
   static GlobalBinding<StringClassParser> _stringClassParser(L"str-is");
+
+  class StringLength: public UnaryCommand {
+  public:
+    StringLength(Command* left, auto_ptr<Command>& sub)
+    : UnaryCommand(left, sub) {}
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      wstring s;
+      if (!sub->exec(s, interp)) return false;
+
+      dst = intToStr(s.size());
+      return true;
+    }
+  };
+
+  static GlobalBinding<UnaryCommandParser<StringLength> >
+  _stringLengthParser(L"str-len");
 }
