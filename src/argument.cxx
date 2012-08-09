@@ -283,7 +283,7 @@ namespace tglng {
 
   bool ArithmeticArgument::get(auto_ptr<Command>& dst) {
     wchar_t fst = text[offset];
-    if (fst >= L'0' && fst <= L'9') {
+    if ((fst >= L'0' && fst <= L'9') || fst == L'-') {
       unsigned start = offset;
       signed discard;
       if (!parseInteger(discard, text, start, &offset)) {

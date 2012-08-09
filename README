@@ -110,8 +110,8 @@ right part, if present, is the result of parsing text to the right of the
 section argument.
 
 Arithmetic (A):
-An arithmetic argument is either a numeric which does not start with a sign, or
-a command.
+An arithmetic argument is either a numeric which does not start with a plus
+sign, or a command.
 
 Character (H):
 A single character.
