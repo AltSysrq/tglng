@@ -25,6 +25,7 @@
 #ensemble-bind#string-ops#str-str#s
 #bind#str-ix#c
 #bind#str-is#~
+#ensemble-bind#string-ops#str-len##
 
 #ensemble-new#secondary-commands#
 #bind#secondary-commands#x
