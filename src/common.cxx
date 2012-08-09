@@ -5,6 +5,7 @@
 #include <string>
 #include <cctype>
 #include <iostream>
+#include <sstream>
 
 #include "common.hxx"
 
@@ -106,5 +107,11 @@ namespace tglng {
       return asNumber != 0;
     else
       return str.size() > 0;
+  }
+
+  wstring intToStr(signed value) {
+    wostringstream out;
+    out << value;
+    return out.str();
   }
 }

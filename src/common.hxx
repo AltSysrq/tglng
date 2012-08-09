@@ -36,6 +36,14 @@ namespace tglng {
    * @return Whether the string is considered true.
    */
   bool parseBool(const std::wstring& str);
+
+  /**
+   * Convenience function to convert an integer to a string.
+   *
+   * @param value The integer to convert.
+   * @return The string representation of the integer.
+   */
+  std::wstring intToStr(signed);
 }
 
 #endif /* COMMON_HXX_ */
