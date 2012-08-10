@@ -71,8 +71,8 @@ namespace tglng {
 
     virtual bool exec(wstring& out, Interpreter& interp) {
       wstring ns, hs;
-      if (!needle  ->exec(ns, interp)) return false;
-      if (!haystack->exec(hs, interp)) return false;
+      if (!interp.exec(ns, needle  .get())) return false;
+      if (!interp.exec(hs, haystack.get())) return false;
 
       size_t result = hs.find(ns);
       if (result == wstring::npos)
@@ -124,10 +124,10 @@ namespace tglng {
       signed ib, ie;
 
       //Get the parms
-      if (!begin->exec(sb, interp) ||
-          (end.get() && !end->exec(se, interp)) ||
-          (string.left && !string.left->exec(str, interp)) ||
-          (string.right && !string.right->exec(strr, interp)))
+      if (!interp.exec(sb, begin.get()) ||
+          (end.get() && !interp.exec(se, end.get())) ||
+          (string.left && !interp.exec(str, string.left)) ||
+          (string.right && !interp.exec(strr, string.right)))
         return false;
 
       //Concat section parts
@@ -230,7 +230,7 @@ namespace tglng {
     virtual bool exec(wstring& out, Interpreter& interp) {
       wstring str;
       bool result;
-      if (!string->exec(str, interp)) return false;
+      if (!interp.exec(str, string.get())) return false;
 
       if (str.empty()) {
         result = false;
@@ -341,7 +341,7 @@ namespace tglng {
 
     virtual bool exec(wstring& dst, Interpreter& interp) {
       wstring s;
-      if (!sub->exec(s, interp)) return false;
+      if (!interp.exec(s, sub.get())) return false;
 
       dst = intToStr(s.size());
       return true;
