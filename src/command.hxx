@@ -51,6 +51,7 @@ namespace tglng {
    * Defines the interface for executing command trees.
    */
   class Command {
+    friend class Interpreter;
   public:
     /**
      * The Command-tree to the left of this command, or NULL if there is
@@ -68,6 +69,8 @@ namespace tglng {
 
   public:
     virtual ~Command();
+
+  protected:
     /**
      * Executes this command. Calling Interpreter::exec() is preferred to this
      * function, as it handles the left-hand code tree as well.
