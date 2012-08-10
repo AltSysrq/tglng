@@ -30,7 +30,8 @@ unless you want to use Egyptian Heiroglyphics.
 A "string" is any number of "character"s, with no constrains placed on the
 characters within.
 
-A "name-char" is any character whose numerical value is above U+0021.
+A "name-char" is any character which is not considered to be whitespace
+according to the current locale.
 
 PARSING
 
