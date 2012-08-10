@@ -119,14 +119,14 @@ namespace tglng {
           next.f = main<false,false,false,true,false>;
       } else if (isseparator(ch[0])) {
         if (ReplaceSeparators) {
-          if (Delimiter)
+          if (Delimiter && !StartToken && !StartWord)
             ch[0] = Delimiter;
-          else
+          else if (Delimiter == 0)
             //NUL delimiter, remove the separator
             ch.clear();
 
-          //Next char is word start
-          next.f = main<false,true,false,false,false>;
+          //Next char is word start unless this was a token start
+          next.f = main<StartToken,!StartToken,false,false,false>;
         }
       } else {
         //Non-word non-separator
