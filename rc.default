@@ -26,6 +26,17 @@
 #bind#str-ix#c
 #bind#str-is#~
 #ensemble-bind#string-ops#str-len##
+#ensemble-bind#string-ops#str-toupper#U
+#ensemble-bind#string-ops#str-tolower#L
+#ensemble-bind#string-ops#str-totitle#T
+#ensemble-bind#string-ops#str-tosent#S
+#ensemble-bind#string-ops#str-tocamel#C
+#ensemble-bind#string-ops#str-topascal#P
+#ensemble-bind#string-ops#str-toscream#!
+#ensemble-bind#string-ops#str-tocstyle#_
+#ensemble-bind#string-ops#str-tocaspal#E
+#ensemble-bind#string-ops#str-tolisp#I
+#ensemble-bind#string-ops#str-tocobol#X
 
 #ensemble-new#secondary-commands#
 #bind#secondary-commands#x
