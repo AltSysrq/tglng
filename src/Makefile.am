@@ -12,4 +12,5 @@ tglng_SOURCES = \
  cmd/arithmetic.cxx \
  cmd/logical.cxx \
  cmd/strings.cxx \
+ cmd/magic_case.cxx \
  cmd/ensemble.cxx

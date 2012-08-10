@@ -236,6 +236,9 @@ str-tocamel     sC      A
 str-topascal    sP      A
 str-toscream    s!      A
 str-tocstyle    s_      A
+str-tocaspal    sE      A
+str-tolisp      sI      A
+str-tocobol     sX      A
 str-len         s#      A
 
 defun           (none)  /[^#]+#/:long-name
