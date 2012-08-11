@@ -18,6 +18,15 @@ using namespace std;
 namespace tglng {
   static const wstring sectionTypes(L"<>:|([{$");
 
+  bool Section::exec(wstring& dst, Interpreter& interp) {
+    wstring r;
+    dst.clear();
+    if (left && !interp.exec(dst, left)) return false;
+    if (right && !interp.exec(r, right)) return false;
+    dst += r;
+    return true;
+  }
+
   Argument::Argument(Interpreter& interp_, const wstring& text_,
                      unsigned& offset_, Command*& left_)
   : interp(interp_), text(text_), offset(offset_), left(left_)

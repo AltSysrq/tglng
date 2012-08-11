@@ -73,6 +73,8 @@ namespace tglng {
    */
   struct Section {
     Command* left, * right;
+
+    bool exec(std::wstring& dst, Interpreter& interp);
   };
   /**
    * Section subclass which deletes the commands on destruction.

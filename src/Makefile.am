@@ -13,4 +13,5 @@ tglng_SOURCES = \
  cmd/logical.cxx \
  cmd/strings.cxx \
  cmd/magic_case.cxx \
- cmd/ensemble.cxx
+ cmd/ensemble.cxx \
+ cmd/control.cxx
