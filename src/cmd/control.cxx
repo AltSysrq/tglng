@@ -50,4 +50,37 @@ namespace tglng {
   };
 
   static GlobalBinding<IfParser> _ifParser(L"if");
+
+  class FalseCoalesce: public Command {
+    AutoSection lhs, rhs;
+
+  public:
+    FalseCoalesce(Command* left,
+                  const Section& l,
+                  const Section& r)
+    : Command(left), lhs(l), rhs(r) {}
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      if (!lhs.exec(dst, interp)) return false;
+      return parseBool(dst) || rhs.exec(dst, interp);
+    }
+  };
+
+  class FalseCoalesceParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp, Command*& out,
+                              const wstring& text, unsigned& offset) {
+      AutoSection lhs, rhs;
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(), a.s(lhs), a.s(rhs)]) return ParseError;
+
+      out = new FalseCoalesce(out, lhs, rhs);
+      lhs.clear();
+      rhs.clear();
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<FalseCoalesceParser>
+  _falseCoalesceParser(L"false-coalesce");
 }
