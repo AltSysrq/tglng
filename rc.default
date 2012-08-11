@@ -17,6 +17,11 @@
 #bind#logical-and#&
 #bind#logical-not#!
 
+#bind#if#i
+#bind#false-coalesce#I
+#bind#for-integer#f
+#bind#for-int-print#F
+
 #ensemble-new#string-ops#
 #bind#string-ops#s
 #bind#str-equ#=
