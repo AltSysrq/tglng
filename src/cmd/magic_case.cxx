@@ -112,7 +112,7 @@ namespace tglng {
         if (wasU)
           next.f = main<false,false,true,false,false>;
         else if (wasD)
-          next.f = main<false,false,false,true,false>;
+          next.f = main<false,false,false,false,true>;
         else
           //If there are any letters which are neither upper nor lower,
           //consider them lower.
