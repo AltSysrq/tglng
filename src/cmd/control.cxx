@@ -117,10 +117,6 @@ namespace tglng {
       wstring str;
       signed slim, sinit, sinc;
 
-      //Left part of the section is executed before anything else
-      if (!interp.exec(str, body.left)) return false;
-      dst += str;
-
       //Initialise the parms and register
       if (limit.get()) {
         if (!interp.exec(str, limit.get())) return false;
