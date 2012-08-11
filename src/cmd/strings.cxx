@@ -124,9 +124,9 @@ namespace tglng {
       signed ib, ie;
 
       //Get the parms
-      if (!interp.exec(sb, begin.get()) ||
+      if ((string.left && !interp.exec(str, string.left)) ||
+          !interp.exec(sb, begin.get()) ||
           (end.get() && !interp.exec(se, end.get())) ||
-          (string.left && !interp.exec(str, string.left)) ||
           (string.right && !interp.exec(strr, string.right)))
         return false;
 
