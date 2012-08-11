@@ -192,9 +192,9 @@ false-coalesce  I       S:test S:otherwise
 If the result of test is true, result in that; otherwise, evaluate otherwise
 and use its result.
 
-for-integer     f       [N:limit=10 [R:reg=i [N:init=0 [N:inc=auto]]]] S:body
+for-integer     f       [A:limit=10 [R:reg=i [A:init=0 [A:inc=auto]]]] S:body
 
-for-int-print   F       [N:limit=10 [R:reg=i [N:init=0 [N:inc=auto]]]] S:body
+for-int-print   F       [A:limit=10 [R:reg=i [A:init=0 [A:inc=auto]]]] S:body
 
 for-each        e       [R+:regs=p] ["/" /[a-zA-Z0-9]+/:opts=""] S:list S:body
 
