@@ -67,12 +67,16 @@ namespace tglng {
       wstring in[2];
       in[0] = remainder;
       in[1] = options;
-      if (!finit.exec(&remainder, in, interp)) {
+      wstring out[2];
+      out[1] = options;
+      if (!finit.exec(out, in, interp)) {
         errorFlag = true;
         return false;
       }
 
       hasInit = true;
+      remainder = out[0];
+      options = out[1];
     }
 
     //Check whether there is anything more.

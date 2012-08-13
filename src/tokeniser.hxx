@@ -13,11 +13,12 @@ namespace tglng {
    * options) to a series of tokens.
    *
    * The first Funtcion, init, has the form
-   *   (str) <- (str options)
+   *   (str options) <- (str options)
    * That is, it takes the caller-specified input string and transforms it to a
    * string usable by the second Function. options is a user-supplied string of
    * ASCII alphanumeric characters. In most cases, the default init is used,
-   * which copies str to str.
+   * which copies str to str (possibly performing some trimming, see
+   * default-tokeniser-pre) and copies options verbatim.
    *
    * The second Function, next, has the form
    *   (token remainder) <- (remainder options)
