@@ -340,7 +340,7 @@ namespace tglng {
         //Balance the parens
         wchar_t l = str[off], r = opts.parentheses[str[off]];
         ++off;
-        for (unsigned count = 1; count && off < str.size(); ++off)
+        for (unsigned count = 1; count && off < str.size(); count && ++off)
           if      (str[off] == r) --count;
           else if (str[off] == l) ++count;
 
@@ -380,8 +380,8 @@ namespace tglng {
 
       unsigned count, i;
       for (count = i = 1; i < out[0].size() && count; ++i)
-        if      (out[0][i] == l) ++count;
-        else if (out[0][i] == r) --count;
+        if      (out[0][i] == r) --count;
+        else if (out[0][i] == l) ++count;
 
       //Trim if perfectly balanced; that is, if count == 0 and i == the length
       //of the string (in which case it was the final character which balanced
@@ -483,6 +483,8 @@ namespace tglng {
           } //end switch(wchar_t)
         } //end if (is backslash),
       } //end for (each character)
+
+      out[0] = s;
     } //end if (escape sequences)
 
     return true;
