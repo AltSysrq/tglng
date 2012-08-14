@@ -199,6 +199,10 @@ namespace tglng {
         coalesceDelims = positive;
         break;
 
+      case L'e':
+        escapeSequences = positive;
+        break;
+
       case L'_':
         nuke();
         break;
