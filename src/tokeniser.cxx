@@ -11,7 +11,7 @@ using namespace std;
 
 namespace tglng {
   static bool defaultTokeniserInit(wstring* out, const wstring* in,
-                                   Interpreter&) {
+                                   Interpreter&, unsigned) {
     out[0] = in[0];
     out[1] = L"";
     return true;
@@ -47,7 +47,7 @@ namespace tglng {
     wstring in[2], out[2];
     in[0] = remainder;
     in[1] = options;
-    if (!fnext.exec(out, in, interp)) {
+    if (!fnext.exec(out, in, interp, fnext.parm)) {
       errorFlag = true;
       return false;
     }
@@ -69,7 +69,7 @@ namespace tglng {
       in[1] = options;
       wstring out[2];
       out[1] = options;
-      if (!finit.exec(out, in, interp)) {
+      if (!finit.exec(out, in, interp, finit.parm)) {
         errorFlag = true;
         return false;
       }

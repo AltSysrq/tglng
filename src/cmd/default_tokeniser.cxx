@@ -271,7 +271,7 @@ namespace tglng {
           Function f;
           if (parser->function(f) && f.matches(1,0)) {
             wstring out;
-            if (f.exec(&out, NULL, interp)) {
+            if (f.exec(&out, NULL, interp, f.parm)) {
               parse(out, interp);
             }
           }
@@ -308,8 +308,8 @@ namespace tglng {
    * Iff options.coalesceDelims is true, skip all delimiters in the input
    * string.
    */
-  static bool defaultTokeniserPreprocessor(wstring* out, const wstring* in,
-                                           Interpreter& interp) {
+  bool defaultTokeniserPreprocessor(wstring* out, const wstring* in,
+                                    Interpreter& interp, unsigned) {
     const wstring& str(in[0]);
     DefaultTokeniserOptions opts(in[1], interp);
 
@@ -325,8 +325,8 @@ namespace tglng {
   /**
    * Default tokeniser implementation.
    */
-  static bool defaultTokeniser(wstring* out, const wstring* in,
-                               Interpreter& interp) {
+  bool defaultTokeniser(wstring* out, const wstring* in,
+                        Interpreter& interp, unsigned) {
     const wstring& str(in[0]);
     DefaultTokeniserOptions opts(in[1], interp);
 
@@ -487,4 +487,9 @@ namespace tglng {
 
     return true;
   }
+
+  static GlobalBinding<TFunctionParser<2,2,defaultTokeniserPreprocessor> >
+  _defaultTokeniserPre(L"default-tokeniser-pre");
+  static GlobalBinding<TFunctionParser<2,2,defaultTokeniser> >
+  _defaultTokeniser(L"default-tokeniser");
 }

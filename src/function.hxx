@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "command.hxx"
+
 namespace tglng {
   class Interpreter;
 
@@ -38,10 +40,11 @@ namespace tglng {
      * @param in An array of input strings, assumed to be equal in size to this
      * Function's inputArity.
      * @param interp The Interpreter in which the Function is being run.
+     * @param parm An arbitrary integer for use by the function.
      * @return Whether the function succeeded.
      */
     typedef bool (*exec_t)(std::wstring* out, const std::wstring* in,
-                           Interpreter&);
+                           Interpreter&, unsigned parm);
 
     /**
      * The number of output arguments this Function takes.
@@ -61,6 +64,11 @@ namespace tglng {
     exec_t exec;
 
     /**
+     * Paramater to pass to exec.
+     */
+    unsigned parm;
+
+    /**
      * Constructs an invalid Function.
      */
     Function()
@@ -74,9 +82,12 @@ namespace tglng {
      * take.
      * @param inputArity_ The number of input arguments this Function will take.
      * @param exec_ The implementation of this Function.
+     * @param parm_ The value for parm (maybe used by exec)
      */
-    Function(unsigned outputArity_, unsigned inputArity_, exec_t exec_)
-    : outputArity(outputArity_), inputArity(inputArity_), exec(exec_)
+    Function(unsigned outputArity_, unsigned inputArity_, exec_t exec_,
+             unsigned parm_ = 0)
+    : outputArity(outputArity_), inputArity(inputArity_),
+      exec(exec_), parm(parm_)
     { }
 
     /**
@@ -105,6 +116,34 @@ namespace tglng {
     bool compatible(unsigned outputArity, unsigned inputArity) const {
       return this->outputArity <= outputArity && this->inputArity <= inputArity;
     }
+  };
+
+  /**
+   * This class encapsulates the parsing of standard function syntax.
+   */
+  class FunctionParser: public CommandParser {
+    Function fun;
+
+  public:
+    /**
+     * Creates a FunctionParser for the given Function object.
+     */
+    FunctionParser(Function);
+
+    virtual ParseResult parse(Interpreter&, Command*&,
+                              const std::wstring&, unsigned&);
+    virtual bool function(Function&) const;
+  };
+
+  /**
+   * Allows specifying the parms for the Function argument of a FunctionParser
+   * at compile time (for use with GlobalBinding).
+   */
+  template<unsigned OutputArity, unsigned InputArity, Function::exec_t Exec>
+  class TFunctionParser: public FunctionParser {
+  public:
+    TFunctionParser()
+    : FunctionParser(Function(OutputArity, InputArity, Exec)) {}
   };
 }
 
