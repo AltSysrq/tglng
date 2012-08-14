@@ -153,8 +153,8 @@ namespace tglng {
           ie += ib;
       }
 
-      //Negative indices are relative to the end plus one
-      if (ib < 0) ib += str.size()+1;
+      //Negative indices are relative to the end (plus one for end)
+      if (ib < 0) ib += str.size();
       if (ie < 0) ie += str.size()+1;
 
       //Clamp indices

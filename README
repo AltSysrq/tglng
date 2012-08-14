@@ -157,7 +157,10 @@ additionally indicate optionality. An unquoted pipe indcates different
 possibilities.
 
 Unless otherwise noted, any command's result is implicitly appended to the
-result of the left-hand code, unless the left-hand is captured by a section.
+result of the left-hand code, unless the left-hand is captured by a
+section. Commands whose long name is followed by a λ can be used as functions
+(see the FUNCTIONS section for information on functions and what "standard
+function syntax" means).
 
 long-command    #       /[^#]+#/:command-name
 Executes command-name (excluding the tailing '#') by looking it up by its long
@@ -196,56 +199,132 @@ for-integer     f       [A:limit=10 [R:reg=i [A:init=0 [A:inc=auto]]]] S:body
 
 for-int-print   F       [A:limit=10 [R:reg=i [A:init=0 [A:inc=auto]]]] S:body
 
-for-each        e       [R+:regs=p] ["/" /[a-zA-Z0-9]+/:opts=""] S:list S:body
-
-for-each-print  E       [R+:regs=p] ["/" /[a-zA-Z0-9]+/:opts=""] S:list S:body
+for-each        e       [R...:regs="p"]
+                        ["%" /[^$]+\$/:preprocessor="default-tokeniser-pre" "%"]
+                        ["#" /[^#]+#/:tokeniser="default-tokeniser" "#"]
+                        [("+" | "-") H...:options=""]
+                        S:list S:body
 
 read-reg        r       R:register
+Evaluates to the current content of register.
 
 write-reg       @       R:register A:value
+Evaluates value and sets register to its result. Results in the empty string.
 
 unset-reg       (none)  R:register
+Deletes the value associated with register.
 
-num-add         +       A A
-num-sub         -       A A
-num-mul         *       A A
-num-div         /       A A
-num-mod         %       A A
-num-equ         xn=     A A
-num-neq         (none)  A A
-num-slt         <       A A
-num-sgt         >       A A
-num-leq         (none)  A A
-num-geq         (none)  A A
-logical-and     &       A A
-logical-or      |       A A
-logical-xor     xor     A A
-logical-not     !       A
+num-add λ       +       A A
+num-sub λ       -       A A
+num-mul λ       *       A A
+num-div λ       /       A A
+num-mod λ       %       A A
+Perform the respective arithmetic operations on their arguments. Division and
+modulus fail if the RHS is zero.
 
-str-equ         =       A A
-str-slt         s<      A A
-str-sgt         s>      A A
-str-str         ss      A A
+num-equ λ       xn=     A A
+num-neq λ       (none)  A A
+num-slt λ       <       A A
+num-sgt λ       >       A A
+num-leq λ       (none)  A A
+num-geq λ       (none)  A A
+Perform numeric comparisons on their arguments.
+
+logical-and λ   &       A A
+logical-or λ    |       A A
+logical-xor λ   xor     A A
+Logically combines the boolean values of the LHS and RHS. The RHS is only
+evaluated if necessary. Note that, in function form, this short-circuiting has
+no effect since all parameters are evaluated before the function is invoked.
+
+logical-not λ   !       A
+Results in the boolean negation of the result of its arguments.
+
+str-equ λ       =       A A
+str-slt λ       s<      A A
+str-sgt λ       s>      A A
+str-str λ       ss      A A
+Perform case-sensitive string comparisons on their arguments.
+
 str-ix          c       A:begin [A:end | "." A:length] S:string
+Results in the contents of the result of evaluating string, between begin
+(inclusive) and either end or (begin+length), whichever is specified
+(exclusive). If both end and length are omitted, end is set to
+(begin+1). Negative indices for begin are relative to the length of the string,
+and for end/(begin+length) to one plus the length of the string. Indices are
+clamped to the string boundaries, and end to begin.
+
 str-is          ~       H:type A:string
-str-toupper     sU      A
-str-tolower     sL      A
-str-totitle     sT      A
-str-tosent      sS      A
-str-tocamel     sC      A
-str-topascal    sP      A
-str-toscream    s!      A
-str-tocstyle    s_      A
-str-tocaspal    sE      A
-str-tolisp      sI      A
-str-tocobol     sX      A
-str-len         s#      A
+Tests whether the string is of the class indicated by H (multiple characters
+indicate multiple characters which each mean the same thing):
+  l   Lowercase UNICODE         L (negated)
+  o   Lowercase ASCII           O (negated)
+  u   Uppercase UNICODE         U (negated)
+  v   Uppercase ASCII           V (negated)
+  a   Alphabetic UNICODE        A (negated)
+  b   Alphabetic ASCII          B (negated)
+  n   Alphanumeric UNICODE      N (negated)
+  m   Alphanumeric ASCII        M (negated)
+  \   ASCII Control Character   ~ (negated)
+  0   ASCII digit               9 (negated)
+  x   ASCII hexit               X (negated)
+  .p  UNICODE Punctuation       :P (negated)
+  ,q  ASCII Punctuation         ;Q (negated)
+  _s  UNICODE Whitespace        #S (negated)
+  g   UNICODE Graphical         G (negated)
+  h   ASCII Graphical           H (negated)
+  r   UNICODE Printing          R (negated)
+  t   ASCII Printing            T (negated)
+
+str-toupper λ   sU      A
+str-tolower λ   sL      A
+Transform the input string into upper or lowercase, according to the current
+locale. The length of the string is unchanged ("ß" does not become "ẞ" or
+"SS"). Turks beware!
+
+str-totitle λ   sT      A
+str-tosent  λ   sS      A
+str-tocamel λ   sC      A
+str-topascal λ  sP      A
+str-toscream λ  s!      A
+str-tocstyle λ  s_      A
+str-tocaspal λ  sE      A
+str-tolisp λ    sI      A
+str-tocobol λ   sX      A
+Performs "magic" case and convention conversion. These commands attempt to
+transform the input string into a string matching the given case and delimiter
+convention indicated:
+  title    This Is A Title
+  sent     This is a sentence
+  camel    thisIsCamelCase
+  pascal   ThisIsPascalCase
+  scream   THESE_ARE_SCREAMING_CAPS
+  cstyle   c_style_identifier
+  caspal   This_Is_Caspal_Style
+  lisp     i-am-lispy
+  cobol    I-HATE-MY-LIFE
+As with str-toupper and str-tolower, case conversions are performed according
+to the current locale, so if your locale is Turkish you probably want to run
+TglNG under some other locale (eg, "en_US.UTF-8") if not working with actual
+Turkish text.
+
+str-len λ       s#      A
+Results in the length of the result of its argument.
+
+default-tokeniser λ     default function syntax
+                        (token remainder <- remainder options)
+default-tokeniser-pre λ default function syntax
+                        (remainder options <- remainder options)
 
 defun           (none)  /[^#]+#/:long-name
                         [":" H:short-name = (none)]
                         ["[" /[^\]]*/:outvars="" "]"]
                         ["(" /[^\)]*/:invars="" ")"]
                         [/[a-zA-Z0-9]+/:opts=""]
+                        S:body
+
+lambda          x\ λ    ["[" /[^\]]*/:outvars = "" "]"]
+                        ["(" /[^\)]*/:invars = "" ")"]
                         S:body
 
 meta            (none)  (none)
@@ -259,4 +338,30 @@ Binds the command whose name is name (without the trailing hash) to the
 character specified by shortname.
 
 ensemble-new    (none)  /[^#]+#/:name
+Creates a new ensemble of the given name. An ensemble is a command which uses
+the character following it to determine another command to delegate to. It is,
+in essence, a secondary namespace for short commands. An ensemble is usable as
+a normal command, including via #bind# etc.
+
 ensemble-bind   (none)  /[^#]+#/:ensemble-name /[^#]+#/:command-name H:shortname
+Binds command-name to shortname within the command ensemble-name, which must be
+an ensemble (created by ensemble-new).
+
+FUNCTIONS
+
+Functions are certain commands which:
++ Have no semantics based on their syntax;
++ Have no internal state.
+
+These properties allow functions to be bound to various parameters at
+run-time. Some commands can only work with functions. All user-defined commands
+are functions and use the standard function syntax.
+
+A function's parameters are generally expressed as
+  (outputs <- inputs)
+
+A function's first output is the actual result of the command. Secondary
+outputs may be captured to registers or ignored.
+
+Standard function syntax:
+  [ "[" /[^\]]*/:outregs = "" "]" ] "(" (A:argument ["," A:argument [...]]) ")"
