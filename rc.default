@@ -21,6 +21,8 @@
 #bind#false-coalesce#I
 #bind#for-integer#f
 #bind#for-int-print#F
+#bind#for-each#e
+#bind#for-each-print#E
 
 #ensemble-new#string-ops#
 #bind#string-ops#s
