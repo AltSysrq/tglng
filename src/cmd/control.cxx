@@ -9,6 +9,7 @@
 #include "../argument.hxx"
 #include "../interp.hxx"
 #include "../common.hxx"
+#include "../tokeniser.hxx"
 
 using namespace std;
 
@@ -221,4 +222,131 @@ namespace tglng {
   _forIntegerParser(L"for-integer");
   static GlobalBinding<ForIntegerParser<true > >
   _forIntPrintParser(L"for-int-print");
+
+  class ForEach: public Command {
+    wstring registers;
+    Tokeniser tokeniser;
+    AutoSection list, body;
+    bool emitItemImplicitly;
+
+  public:
+    ForEach(Command* left,
+            const wstring& registers_,
+            const Tokeniser& tokeniser_,
+            const Section& list_,
+            const Section& body_,
+            bool emitItemImplicitly_)
+    : Command(left),
+      registers(registers_),
+      tokeniser(tokeniser_),
+      list(list_),
+      body(body_),
+      emitItemImplicitly(emitItemImplicitly_)
+    { }
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      wstring text, item;
+      if (!list.exec(text, interp)) return false;
+      tokeniser.reset(text);
+
+      dst.clear();
+
+      while (tokeniser.hasMore()) {
+        for (unsigned i = 0; i < registers.size() && tokeniser.next(item); ++i)
+          interp.registers[registers[i]] = item;
+
+        if (tokeniser.error()) break;
+
+        if (!interp.exec(text, body.left)) return false;
+        dst += text;
+        if (emitItemImplicitly)
+          dst += item;
+        if (!interp.exec(text, body.right)) return false;
+        dst += text;
+      }
+
+      //Successful iff the tokeniser didn't fail.
+      return !tokeniser.error();
+    }
+  };
+
+  template<bool EmitItemImplicitly>
+  class ForEachParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp,
+                              Command*& out,
+                              const wstring& text,
+                              unsigned& offset) {
+      wstring
+        registers(L"p"),
+        preprocessor(L"default-tokeniser-pre"),
+        tokeniser(L"default-tokeniser"),
+        options(L"");
+      unsigned preprocessorOffset(offset), tokeniserOffset(offset);
+      bool prependPlus(false), prependMinus(false);
+      AutoSection list, body;
+      ArgumentParser a(interp, text, offset, out);
+      Function preprocessorFun, tokeniserFun;
+
+      if (!a[a.h(),
+             -a.an(registers),
+             -(a.x(L'%'), a.to(preprocessor, L'%') >> preprocessorOffset),
+             -(a.x(L'#'), a.to(tokeniser, L'#') >> tokeniserOffset),
+             -(a.x(prependPlus, L'+') | a.x(prependMinus, L'-'),
+               a.ns(options)),
+             ((a.x(L'?'), a.s(body), a.s(list)) |
+              (           a.s(list), a.s(body)))])
+        return ParseError;
+
+      if (prependPlus)
+        options = L'+' + options;
+      else if (prependMinus)
+        options = L'-' + options;
+
+      if (!interp.commandsL.count(preprocessor)) {
+        interp.error(wstring(L"No such command: ") + preprocessor,
+                     text, preprocessorOffset);
+        return ParseError;
+      }
+      if (!interp.commandsL.count(tokeniser)) {
+        interp.error(wstring(L"No such command: ") + tokeniser,
+                     text, tokeniserOffset);
+        return ParseError;
+      }
+
+      if (!interp.commandsL[preprocessor]->function(preprocessorFun)) {
+        interp.error(wstring(L"Not a function: ") + preprocessor,
+                     text, preprocessorOffset);
+        return ParseError;
+      }
+      if (!interp.commandsL[tokeniser]->function(tokeniserFun)) {
+        interp.error(wstring(L"Not a function: ") + tokeniser,
+                     text, tokeniserOffset);
+        return ParseError;
+      }
+
+      if (!preprocessorFun.compatible(2,2)) {
+        interp.error(wstring(L"Incompatible with (2 <- 2): ") + preprocessor,
+                     text, preprocessorOffset);
+        return ParseError;
+      }
+      if (!tokeniserFun.compatible(2,2)) {
+        interp.error(wstring(L"Incompatible with (2 <- 2): ") + tokeniser,
+                     text, tokeniserOffset);
+        return ParseError;
+      }
+
+      //OK, the call is good
+      out = new ForEach(out, registers,
+                        Tokeniser(interp, preprocessorFun, tokeniserFun,
+                                  L"", options),
+                        list, body, EmitItemImplicitly);
+      list.clear();
+      body.clear();
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<ForEachParser<false> > _forEach(L"for-each");
+  static GlobalBinding<ForEachParser<true > > _forEachP(L"for-each-print");
 }

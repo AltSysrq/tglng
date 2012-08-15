@@ -67,6 +67,11 @@ namespace tglng {
               const std::wstring& text, const std::wstring& opts);
 
     /**
+     * Resets the Tokeniser to operate on the given string.
+     */
+    void reset(const std::wstring&);
+
+    /**
      * Extracts the next token in the sequence, if possible.
      *
      * init will be called if it has not been yet. If remainder is not the

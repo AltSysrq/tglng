@@ -40,6 +40,11 @@ namespace tglng {
     hasInit(false), errorFlag(false)
   { }
 
+  void Tokeniser::reset(const wstring& str) {
+    hasInit = errorFlag = false;
+    remainder = str;
+  }
+
   bool Tokeniser::next(wstring& dst) {
     if (!hasMore()) return false;
 

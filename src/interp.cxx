@@ -34,6 +34,10 @@ namespace tglng {
                               const wstring& text, unsigned& offset) {
       return delegate->parse(interp, accum, text, offset);
     }
+
+    virtual bool function(Function& dst) const {
+      return delegate->function(dst);
+    }
   };
 
   static map<wstring,CommandParser*> cloneProxyBindings(

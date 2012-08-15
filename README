@@ -199,11 +199,13 @@ for-integer     f       [A:limit=10 [R:reg=i [A:init=0 [A:inc=auto]]]] S:body
 
 for-int-print   F       [A:limit=10 [R:reg=i [A:init=0 [A:inc=auto]]]] S:body
 
-for-each        e       [R...:regs="p"]
-                        ["%" /[^$]+\$/:preprocessor="default-tokeniser-pre" "%"]
-                        ["#" /[^#]+#/:tokeniser="default-tokeniser" "#"]
+for-each        e       [/[a-zA-Z0-9]+/:regs="p"]
+                        ["%" /[^%]+%/:preprocessor="default-tokeniser-pre"]
+                        ["#" /[^#]+#/:tokeniser="default-tokeniser"]
                         [("+" | "-") H...:options=""]
-                        S:list S:body
+                        (S:list S:body | "?" S:body S:list)
+
+for-each-print  E       (same syntax as for-each)
 
 read-reg        r       R:register
 Evaluates to the current content of register.
