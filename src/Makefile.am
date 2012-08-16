@@ -17,4 +17,5 @@ tglng_SOURCES = \
  cmd/magic_case.cxx \
  cmd/ensemble.cxx \
  cmd/control.cxx \
- cmd/default_tokeniser.cxx
+ cmd/default_tokeniser.cxx \
+ cmd/defun.cxx

@@ -326,12 +326,11 @@ defun           (none)  /[^#]+#/:long-name
                         [":" H:short-name = (none)]
                         ["[" /[^\]]*/:outvars="" "]"]
                         ["(" /[^\)]*/:invars="" ")"]
-                        [/[a-zA-Z0-9]+/:opts=""]
-                        S:body
+                        A:body
 
 lambda          x\ λ    ["[" /[^\]]*/:outvars = "" "]"]
                         ["(" /[^\)]*/:invars = "" ")"]
-                        S:body
+                        A:body
 
 meta            (none)  (none)
 Results in a string containing only the escape character.

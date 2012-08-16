@@ -62,20 +62,35 @@ namespace tglng {
   }
 
   Interpreter::Interpreter()
-  : commandsL(cloneProxyBindings(globalDefaultBindings)),
+  : nextExternalEntity(0),
+    commandsL(cloneProxyBindings(globalDefaultBindings)),
     commandsS(makeDefaultCommandsS(commandsL)),
     escape(L'`'), longMode(false)
   {
   }
 
   Interpreter::Interpreter(const Interpreter* that)
-  : commandsL(cloneProxyBindings(&that->commandsL)),
+  : externalEntities(that->externalEntities),
+    nextExternalEntity(that->nextExternalEntity),
+    commandsL(cloneProxyBindings(&that->commandsL)),
     //Since commandsS doesn't own anything anyway, a direct copy will suffice.
     commandsS(that->commandsS),
     escape(that->escape), longMode(that->longMode)
-  { }
+  {
+    //Clear the free fields of the externals since we don't own the objects
+    for (map<unsigned,ExtrernalEntity>::iterator it = externalEntities.begin();
+         it != externalEntities.end(); ++it)
+      it->second.free = NULL;
+  }
 
   Interpreter::~Interpreter() {
+    //Free the externals
+    for (map<unsigned,ExtrernalEntity>::const_iterator it =
+           externalEntities.begin();
+         it != externalEntities.end(); ++it)
+      if (it->second.free)
+        it->second.free(it->second.datum);
+
     //Delete the CommandParser*s owned by this.
     for (map<wstring,CommandParser*>::const_iterator it = commandsL.begin();
          it != commandsL.end(); ++it)
@@ -221,6 +236,19 @@ namespace tglng {
     }
 
     return exec(out, text, mode);
+  }
+
+  unsigned Interpreter::bindExternal(const ExtrernalEntity& ext) {
+    do {
+      ++nextExternalEntity;
+    } while (externalEntities.count(nextExternalEntity));
+
+    externalEntities[nextExternalEntity] = ext;
+    return nextExternalEntity;
+  }
+
+  void* Interpreter::external(unsigned ref) const {
+    return externalEntities.find(ref)->second.datum;
   }
 
   void Interpreter::error(const wstring& why,

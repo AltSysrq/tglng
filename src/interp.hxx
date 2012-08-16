@@ -22,6 +22,13 @@ namespace tglng {
     //Holds the starting index of the most recently-parsed command.
     unsigned backupDest;
 
+    struct ExtrernalEntity {
+      void* datum;
+      void (*free)(void*);
+    };
+    std::map<unsigned,ExtrernalEntity> externalEntities;
+    unsigned nextExternalEntity;
+
   public:
     /**
      * Maps wstrings to CommandParser*s used to interperet the commands. These
@@ -40,7 +47,8 @@ namespace tglng {
      * Maps wchar_ts to register values. If an entry is not present, that
      * register does not exist.
      */
-    std::map<wchar_t,std::wstring> registers;
+    typedef std::map<wchar_t,std::wstring> registers_t;
+    registers_t registers;
 
     /**
      * The current escape character.
@@ -147,6 +155,26 @@ namespace tglng {
     bool exec(std::wstring& out, std::wistream& in, ParseMode);
 
     /**
+     * Binds the given object to this interpreter.
+     *
+     * @param t The object to bind. It will be deleted when the interpreter is
+     * deleted.
+     * @returns An integer which can be used to access the object.
+     */
+    template<typename T>
+    unsigned bindExternal(T* t) {
+      ExtrernalEntity ext;
+      ext.datum = t;
+      ext.free = (void (*)(void*))&free<T>;
+      return bindExternal(ext);
+    }
+
+    /**
+     * Returns the external entity with the given identifier.
+     */
+    void* external(unsigned) const;
+
+    /**
      * Prints a diagnostic message to stderr, showing the given error message
      * as well as context around where the error occurred in the code.
      *
@@ -171,6 +199,14 @@ namespace tglng {
      * This should only be done at program shutdown.
      */
     static void freeGlobalBindings();
+
+  private:
+    template<typename T>
+    static void free(void* ptr) {
+      delete (T*)ptr;
+    }
+
+    unsigned bindExternal(const ExtrernalEntity&);
   };
 
   /**
