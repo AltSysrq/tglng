@@ -11,6 +11,7 @@
 #include "argument.hxx"
 #include "interp.hxx"
 #include "cmd/fundamental.hxx"
+#include "cmd/registers.hxx"
 #include "common.hxx"
 
 using namespace std;
@@ -198,9 +199,7 @@ namespace tglng {
 
       if (offset >= text.size()) goto fail;
 
-      //TODO: out.right = new RegisterRead(text[offset++]);
-      cerr << "FATAL: Don't know how to do register section yet!" << endl;
-      exit(EXIT_THE_SKY_IS_FALLING);
+      out.right = new ReadRegister(NULL, text[offset++]);
       return true;
     }
 
