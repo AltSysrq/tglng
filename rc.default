@@ -1,55 +1,56 @@
-#bind#section-command#(
-#bind#section-command#[
-#bind#section-command#{
-#bind#close-brace#}
-#bind#close-bracket#]
-#bind#close-paren#)
-#bind#read-reg#r
-#bind#write-reg#@
-#bind#num-add#+
-#bind#num-sub#-
-#bind#num-mul#*
-#bind#num-div#/
-#bind#num-mod#%
-#bind#num-slt#<
-#bind#num-sgt#>
-#bind#logical-or#|
-#bind#logical-and#&
-#bind#logical-not#!
+#long-mode#
+bind section-command (
+bind section-command [
+bind section-command {
+bind close-brace     }
+bind close-bracket   ]
+bind close-paren     )
+bind read-reg        r
+bind write-reg       @
+bind num-add         +
+bind num-sub         -
+bind num-mul         *
+bind num-div         /
+bind num-mod         %
+bind num-slt         <
+bind num-sgt         >
+bind logical-or      |
+bind logical-and     &
+bind logical-not     !
 
-#bind#if#i
-#bind#false-coalesce#I
-#bind#for-integer#f
-#bind#for-int-print#F
-#bind#for-each#e
-#bind#for-each-print#E
+bind if              i
+bind false-coalesce  I
+bind for-integer     f
+bind for-int-print   F
+bind for-each        e
+bind for-each-print  E
 
-#ensemble-new#string-ops#
-#bind#string-ops#s
-#bind#str-equ#=
-#ensemble-bind#string-ops#str-slt#<
-#ensemble-bind#string-ops#str-sgt#>
-#ensemble-bind#string-ops#str-str#s
-#bind#str-ix#c
-#bind#str-is#~
-#ensemble-bind#string-ops#str-len##
-#ensemble-bind#string-ops#str-toupper#U
-#ensemble-bind#string-ops#str-tolower#L
-#ensemble-bind#string-ops#str-totitle#T
-#ensemble-bind#string-ops#str-tosent#S
-#ensemble-bind#string-ops#str-tocamel#C
-#ensemble-bind#string-ops#str-topascal#P
-#ensemble-bind#string-ops#str-toscream#!
-#ensemble-bind#string-ops#str-tocstyle#_
-#ensemble-bind#string-ops#str-tocaspal#E
-#ensemble-bind#string-ops#str-tolisp#I
-#ensemble-bind#string-ops#str-tocobol#X
+ensemble-new         string-ops
+bind string-ops      s
+bind str-equ         =
+bind str-ix          c
+bind str-is          ~
+ensemble-bind string-ops str-slt        <
+ensemble-bind string-ops str-sgt        >
+ensemble-bind string-ops str-str        s
+ensemble-bind string-ops str-len        #
+ensemble-bind string-ops str-toupper    U
+ensemble-bind string-ops str-tolower    L
+ensemble-bind string-ops str-totitle    T
+ensemble-bind string-ops str-tosent     S
+ensemble-bind string-ops str-tocamel    C
+ensemble-bind string-ops str-topascal   P
+ensemble-bind string-ops str-toscream   !
+ensemble-bind string-ops str-tocstyle   _
+ensemble-bind string-ops str-tocaspal   E
+ensemble-bind string-ops str-tolisp     I
+ensemble-bind string-ops str-tocobol    X
 
-#ensemble-new#secondary-commands#
-#bind#secondary-commands#x
-#ensemble-new#secondary-numeric-ops#
-#ensemble-bind#secondary-commands#secondary-numeric-ops#n
-#ensemble-bind#secondary-numeric-ops#num-equ#=
-#ensemble-new#other-commands#
-#ensemble-bind#secondary-commands#other-commands#o
-#ensemble-bind#other-commands#logical-xor#r
+ensemble-new secondary-commands
+bind secondary-commands x
+ensemble-new secondary-numeric-ops
+ensemble-bind secondary-commands secondary-numeric-ops n
+ensemble-bind secondary-numeric-ops num-equ =
+ensemble-new other-commands
+ensemble-bind secondary-commands other-commands o
+ensemble-bind other-commands logical-xor r
