@@ -6,6 +6,7 @@ bind close-brace     }
 bind close-bracket   ]
 bind close-paren     )
 bind read-reg        r
+bind read-reg        $
 bind write-reg       @
 bind num-add         +
 bind num-sub         -

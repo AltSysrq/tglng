@@ -211,7 +211,7 @@ for-each        e       [/[a-zA-Z0-9]+/:regs="p"]
 
 for-each-print  E       (same syntax as for-each)
 
-read-reg        r       R:register
+read-reg        r $     R:register
 Evaluates to the current content of register.
 
 write-reg       @       R:register A:value
