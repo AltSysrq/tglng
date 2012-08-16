@@ -15,6 +15,7 @@
 #include "interp.hxx"
 #include "command.hxx"
 #include "cmd/fundamental.hxx"
+#include "cmd/long_mode.hxx"
 #include "common.hxx"
 
 using namespace std;
@@ -63,7 +64,7 @@ namespace tglng {
   Interpreter::Interpreter()
   : commandsL(cloneProxyBindings(globalDefaultBindings)),
     commandsS(makeDefaultCommandsS(commandsL)),
-    escape(L'`')
+    escape(L'`'), longMode(false)
   {
   }
 
@@ -71,7 +72,7 @@ namespace tglng {
   : commandsL(cloneProxyBindings(&that->commandsL)),
     //Since commandsS doesn't own anything anyway, a direct copy will suffice.
     commandsS(that->commandsS),
-    escape(that->escape)
+    escape(that->escape), longMode(that->longMode)
   { }
 
   Interpreter::~Interpreter() {
@@ -123,14 +124,22 @@ namespace tglng {
           else
             parser = &nullParser;
         } else {
-          map<wchar_t,CommandParser*>::const_iterator it =
-            commandsS.find(text[offset]);
-          if (it == commandsS.end()) {
-            error(wstring(L"No such command: ") + text[offset], text, offset);
-            return ParseError;
-          }
+          if (longMode && LongModeCmdParser::isname(text[offset]) &&
+              //We want - to be the subtraction operator, so names can't start
+              //with it.
+              text[offset] != L'-') {
+            static LongModeCmdParser longModeCmdParser;
+            parser = &longModeCmdParser;
+          } else {
+            map<wchar_t,CommandParser*>::const_iterator it =
+              commandsS.find(text[offset]);
+            if (it == commandsS.end()) {
+              error(wstring(L"No such command: ") + text[offset], text, offset);
+              return ParseError;
+            }
 
-          parser = it->second;
+            parser = it->second;
+          }
         }
 
         return parser->parse(*this, out, text, offset);

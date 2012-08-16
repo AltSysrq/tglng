@@ -43,7 +43,7 @@ If the command parses successfully, it results in:
 o The new command-tree which represents the combined inputs.
 o The characters which remain to be parsed.
 
-To make use of TglNG as fluid as possible, there are three modes of command
+To make use of TglNG as fluid as possible, there are four modes of command
 parsing:
 o Verbatim mode. Every individual character is recognised as the self-insert
   command.
@@ -52,6 +52,9 @@ o Literal mode. The configured escape character (default `) is recognised as
 o Command mode. Every character is looked up as the command bound to it, except
   for the escape character, which is assumed to be no-op, and space/control
   characters, which are implicitly the no-op command.
+o Long mode. Used when the long-mode flag is set and command mode would
+  otherwise be used. Alphanumeric characters are interpreted as long-mode-cmd;
+  all others as if Command mode were in use.
 
 EXECUTION
 
@@ -154,7 +157,8 @@ argument is named by that name in the command description. If an equals and a
 value follows a name, the value is the default if the argument is
 omitted. Unquoted parentheses and brackets indicate grouping; brackets
 additionally indicate optionality. An unquoted pipe indcates different
-possibilities.
+possibilities. When the long-mode flag is set, whitespace is also accepted for
+single-character-terminated strings (eg, in bind).
 
 Unless otherwise noted, any command's result is implicitly appended to the
 result of the left-hand code, unless the left-hand is captured by a
@@ -348,6 +352,20 @@ a normal command, including via #bind# etc.
 ensemble-bind   (none)  /[^#]+#/:ensemble-name /[^#]+#/:command-name H:shortname
 Binds command-name to shortname within the command ensemble-name, which must be
 an ensemble (created by ensemble-new).
+
+long-mode       (none)  ...:body
+Sets the long-mode flag in the interpreter, and parses commands in Command mode
+(which becomes Long mode due to the flag) until parsing is stopped. The
+long-mode flag is then reset to what it was before the command was executed.
+
+short-mode      (none)  ...:body
+Like long-mode, but unsets the long-mode flag (thus body will be in normal
+Command mode).
+
+long-mode-cmd   (none)  /[a-zA-Z0-9_-]+/:name
+Reads characters (including its own character) into a command name. That
+command is then looked up and parsed, with the command character as the last
+character in name.
 
 FUNCTIONS
 

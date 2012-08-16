@@ -48,6 +48,11 @@ namespace tglng {
     wchar_t escape;
 
     /**
+     * Whether "long mode" is currently in use.
+     */
+    bool longMode;
+
+    /**
      * Creates a new Interpreter with only the builtin commands defined, no
      * registers, and the only short name '#' bound to "long-command".
      */

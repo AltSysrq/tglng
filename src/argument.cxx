@@ -232,7 +232,8 @@ namespace tglng {
       return false;
 
     for (unsigned i = offset+1; i < text.size(); ++i)
-      if (text[i] == sentinel)
+      if (text[i] == sentinel ||
+          (interp.longMode && sentinel == L'#' && iswspace(text[i])))
         return true;
 
     return false;
@@ -242,7 +243,9 @@ namespace tglng {
     unsigned start = offset;
     do {
       ++offset;
-    } while (text[offset] != sentinel);
+    } while (text[offset] != sentinel &&
+             (!interp.longMode || sentinel != L'#' ||
+              !iswspace(text[offset])));
 
     dst = text.substr(start, offset-start);
     //Past the terminating character

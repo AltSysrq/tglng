@@ -8,6 +8,7 @@ tglng_SOURCES = \
  function.cxx \
  tokeniser.cxx \
  cmd/fundamental.cxx \
+ cmd/long_mode.cxx \
  cmd/parens.cxx \
  cmd/registers.cxx \
  cmd/arithmetic.cxx \
