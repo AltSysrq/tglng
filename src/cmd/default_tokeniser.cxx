@@ -269,6 +269,9 @@ namespace tglng {
         wstring cmdname(str, i, len);
         i += len;
 
+        //Prepend prefix
+        cmdname = L"tokfmt-" + cmdname;
+
         //Lookup and execute the command if possible
         if (interp.commandsL.count(cmdname)) {
           CommandParser* parser = interp.commandsL[cmdname];
@@ -397,11 +400,12 @@ namespace tglng {
     //Backslash substitution
     if (opts.escapeSequences) {
       wstring s;
-      unsigned ix = 0, next;
+      size_t ix = 0, next;
       while (ix < out[0].size()) {
         next = out[0].find(L'\\', ix);
         s.append(out[0], ix, next-ix);
         ix = next;
+        if (ix == wstring::npos) break;
 
         //Move past backslash and handle whatever follows
         if (++ix < out[0].size()) {
