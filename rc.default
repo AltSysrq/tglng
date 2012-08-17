@@ -57,3 +57,7 @@ ensemble-bind secondary-commands other-commands o
 ensemble-bind other-commands logical-xor r
 ensemble-bind secondary-commands lambda \
 bind lambda λ
+
+defun tokfmt-csv {+_ld,t""e}
+defun tokfmt-tcl {+!t""e-b()}
+defun tokfmt-json {+!t""ed:d,-b()}
