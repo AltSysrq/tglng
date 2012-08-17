@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <clocale>
+#include <locale>
 
 #include "interp.hxx"
 #include "common.hxx"
@@ -18,6 +19,7 @@ int main(int argc, const char*const* argv) {
 
   setlocale(LC_ALL, "");
   setlocale(LC_NUMERIC, "C");
+  locale::global(locale(""));
 
   //Try to read from standard configuration file.
   //TODO: Change this to something more sensible
