@@ -4,13 +4,16 @@
 
 #include <string>
 #include <cstdlib>
+#include <cassert>
 #include <memory>
 #include <map>
+#include <sstream>
 
 #include "../command.hxx"
 #include "../function.hxx"
 #include "../interp.hxx"
 #include "../argument.hxx"
+#include "fundamental.hxx"
 #include "../common.hxx"
 
 using namespace std;
@@ -112,4 +115,47 @@ namespace tglng {
   };
 
   static GlobalBinding<DefunParser> _defun(L"defun");
+
+  static unsigned nextLambdaName = 0;
+  class LambdaParser: public CommandParser, private BasicFunctionDefiner {
+  public:
+    ParseResult parse(Interpreter& interp,
+                      Command*& out,
+                      const wstring& text,
+                      unsigned& offset) {
+      wstring outputs, inputs;
+      auto_ptr<Command> body;
+      unsigned origOffset(offset);
+
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(),
+             -(a.x(L'['), a.to(outputs, L']') | a.x(L']')),
+             -(a.x(L'('), a.to(inputs, L')') | a.x(L')')),
+             a.a(body)])
+        return ParseError;
+
+      wostringstream name;
+      //It is impossible for the user to define command names containing a
+      //hash, so this guarantees that there will be no collision
+      name << L"lambda#" << nextLambdaName++;
+
+      assert(!interp.commandsL.count(name.str()));
+      if (!defineFunction(interp,
+                          0,
+                          name.str(),
+                          outputs,
+                          inputs,
+                          body.get(),
+                          text,
+                          origOffset))
+        return ParseError;
+
+      body.release();
+      //Lambda evaluates to its name
+      out = new SelfInsertCommand(out, name.str());
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<LambdaParser> _lambda(L"lambda");
 }
