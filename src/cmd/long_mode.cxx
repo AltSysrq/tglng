@@ -65,12 +65,6 @@ namespace tglng {
       //Parse all commands
       ParseResult result = interp.parseAll(out, text, offset,
                                            Interpreter::ParseModeCommand);
-      //If it was a closing paren (or similar), backup so that the parent
-      //parser can handle it.
-      if (result == StopCloseParen ||
-          result == StopCloseBracket ||
-          result == StopCloseBrace)
-        interp.backup(offset);
 
       //Restore old long mode
       interp.longMode = wasLong;
