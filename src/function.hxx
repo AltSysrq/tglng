@@ -117,6 +117,33 @@ namespace tglng {
     bool compatible(unsigned outputArity, unsigned inputArity) const {
       return this->outputArity <= outputArity && this->inputArity <= inputArity;
     }
+
+    /**
+     * Extracts a Function object from the command with the given long name
+     * from the given interpreter.
+     *
+     * @param dst The destination to write to.
+     * @param interp The Interpreter to use.
+     * @param name The name of the command which should represent the function.
+     * @param outputArity The output arity to expect.
+     * @param inputArity The input arity to expect.
+     * @param text The text being parsed which caused this lookup to be
+     * performed (default empty string).
+     * @param nameOffset The offset within text where the name begins (default
+     * zero).
+     * @param validate Member function to call to verify that the function is
+     * usable; defaults to &Function::compatible, but matches may be used as
+     * well.
+     * @return Whether a compatible function was obtained.
+     */
+    static bool get(Function& dst,
+                    const Interpreter& interp,
+                    const std::wstring& name,
+                    unsigned outputArity, unsigned inputArity,
+                    const std::wstring& text = std::wstring(),
+                    unsigned nameOffset = 0,
+                    bool (Function::*validate)(unsigned,unsigned) const =
+                    &tglng::Function::compatible);
   };
 
   /**

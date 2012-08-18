@@ -10,6 +10,7 @@
 #include "../interp.hxx"
 #include "../argument.hxx"
 #include "../common.hxx"
+#include "../function.hxx"
 
 using namespace std;
 

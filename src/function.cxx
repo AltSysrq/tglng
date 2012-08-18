@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <iostream>
 
 #include "function.hxx"
 #include "command.hxx"
@@ -15,6 +16,55 @@
 using namespace std;
 
 namespace tglng {
+  bool Function::get(Function& dst,
+                     const Interpreter& interp,
+                     const wstring& name,
+                     unsigned outputArity,
+                     unsigned inputArity,
+                     const wstring& text,
+                     unsigned nameOffset,
+                     bool (Function::*validate)(unsigned, unsigned) const) {
+    map<wstring,CommandParser*>::const_iterator it =
+      interp.commandsL.find(name);
+    if (it == interp.commandsL.end()) {
+      if (text.empty())
+        wcerr << L"tglng: error: In dynamic function lookup: "
+              << L"No such command: " << name << endl;
+      else
+        interp.error(wstring(L"No such command: ") + name,
+                     text, nameOffset);
+      return false;
+    }
+
+    CommandParser* parser = it->second;
+    if (!parser->function(dst)) {
+      if (text.empty())
+        wcerr << L"tglng: error: In dynamic function lookup: "
+              << L"Not a function: " << name << endl;
+      else
+        interp.error(wstring(L"Not a function: ") + name,
+                     text, nameOffset);
+      return false;
+    }
+
+    if (!(dst.*validate)(outputArity,inputArity)) {
+      if (text.empty())
+        wcerr << L"tglng: error: In dynamic function lookup: "
+              << L"Inappropriate function: " << name << endl;
+      else
+        interp.error(wstring(L"Inappropriate function: ") + name,
+                     text, nameOffset);
+
+      wcerr << L"tglng: note: "
+            << L"Needed (" <<     outputArity << L" <- " <<     inputArity
+            << L"), got (" << dst.outputArity << L" <- " << dst.inputArity
+            << L")" << endl;
+      return false;
+    }
+
+    return true;
+  }
+
   FunctionInvocation::FunctionInvocation(Command* left,
                                          Function fun,
                                          const wstring& outregs_,
