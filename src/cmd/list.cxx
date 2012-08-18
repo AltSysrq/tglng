@@ -142,6 +142,34 @@ namespace tglng {
     return true;
   }
 
+  bool list::filter(wstring* out, const wstring* in,
+                    Interpreter& interp, unsigned) {
+    Function fun;
+    if (!Function::get(fun, interp,
+                       in[0], 1, 1))
+      return false;
+
+    out[0].clear();
+    wstring carout[2];
+    wstring remainder(in[1]);
+    while (car(carout, &remainder, interp, 1)) {
+      wstring appin[2];
+      if (!fun.exec(appin+1, carout, interp, fun.parm))
+        return false;
+
+      if (parseBool(appin[1])) {
+        appin[1] = carout[0];
+        appin[0] = out[0];
+        if (!append(out, appin, interp, 0))
+          return false;
+      }
+
+      remainder = carout[1];
+    }
+
+    return true;
+  }
+
   static GlobalBinding<TFunctionParser<1,1,list::escape> >
   _listEscape(L"list-escape");
   static GlobalBinding<TFunctionParser<1,2,list::append> >
@@ -150,4 +178,6 @@ namespace tglng {
   _listMap(L"list-map");
   static GlobalBinding<TFunctionParser<1,3,list::fold> >
   _listFold(L"list-fold");
+  static GlobalBinding<TFunctionParser<1,2,list::filter> >
+  _listFilter(L"list-filter");
 }
