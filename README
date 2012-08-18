@@ -176,7 +176,7 @@ self-insert     (none)  (none)
 Results in a one-character string which is the same as the apparent short name
 of the command.
 
-no-op           (none)  (none)
+no-op λ         (none)  (none)
 Results in the empty string.
 
 section-command {[(      ...:commands

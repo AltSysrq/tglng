@@ -6,6 +6,8 @@
 #include "../command.hxx"
 
 namespace tglng {
+  class Function;
+
   /**
    * Command which evaluates to a fixed string.
    */
@@ -45,6 +47,7 @@ namespace tglng {
   public:
     virtual ParseResult parse(Interpreter&, Command*&,
                               const std::wstring&, unsigned& offset);
+    virtual bool function(Function&) const;
   };
 }
 

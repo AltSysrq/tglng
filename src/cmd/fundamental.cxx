@@ -104,6 +104,17 @@ namespace tglng {
     return ContinueParsing;
   }
 
+  static bool nullFunction(wstring* out, const wstring*,
+                           Interpreter&, unsigned) {
+    out[0].clear();
+    return true;
+  }
+
+  bool NullParser::function(Function& fun) const {
+    fun = Function(1,0, nullFunction);
+    return true;
+  }
+
   static GlobalBinding<NullParser> _nullParser(L"no-op");
 
   class MetaParser: public CommandParser {
