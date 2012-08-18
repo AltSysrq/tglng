@@ -3,6 +3,8 @@
 
 #include "../command.hxx"
 #include "../argument.hxx"
+#include "../function.hxx"
+#include "fundamental.hxx"
 
 namespace tglng {
   /**
@@ -21,6 +23,20 @@ namespace tglng {
 
       out = new C(out, sub);
       return ContinueParsing;
+    }
+
+    virtual bool function(Function& fun) const {
+      fun = Function(1, 1, &adapter);
+      return true;
+    }
+
+  private:
+    static bool adapter(std::wstring* out, const std::wstring* in,
+                        Interpreter& interp, unsigned) {
+      std::auto_ptr<Command> sub(
+        new SelfInsertCommand(NULL, in[0]));
+      C c(NULL, sub);
+      return c.exec(out[0], interp);
     }
   };
 
@@ -51,6 +67,21 @@ namespace tglng {
 
       out = new C(out, lhs, rhs);
       return ContinueParsing;
+    }
+
+    virtual bool function(Function& fun) const {
+      fun = Function(1, 2, &adapter);
+      return true;
+    }
+
+  private:
+    static bool adapter(std::wstring& out, const std::wstring* in,
+                        Interpreter& interp, unsigned) {
+      std::auto_ptr<Command>
+        lhs(new SelfInsertCommand(NULL, in[0])),
+        rhs(new SelfInsertCommand(NULL, in[1]));
+      C c(NULL, lhs, rhs);
+      return c.exec(out[0], interp);
     }
   };
 
