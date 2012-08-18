@@ -170,6 +170,8 @@ namespace tglng {
     return true;
   }
 
+  static GlobalBinding<TFunctionParser<2,1,list::car> >
+  _listCar(L"list-car");
   static GlobalBinding<TFunctionParser<1,1,list::escape> >
   _listEscape(L"list-escape");
   static GlobalBinding<TFunctionParser<1,2,list::append> >
