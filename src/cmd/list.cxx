@@ -170,6 +170,63 @@ namespace tglng {
     return true;
   }
 
+  unsigned list::llength(const wstring& list, Interpreter& interp) {
+    wstring remainder(list), carout[2];
+    unsigned len = 0;
+    while (car(carout, &remainder, interp, 1)) {
+      ++len;
+      remainder = carout[1];
+    }
+
+    return len;
+  }
+
+  bool list::length(wstring* out, const wstring* in,
+                    Interpreter& interp, unsigned) {
+    out[0] = intToStr(llength(in[0], interp));
+    return true;
+  }
+
+  bool list::ix(wstring* out, const wstring* in,
+                Interpreter& interp, unsigned) {
+    signed ix;
+    if (!parseInteger(ix, in[1])) {
+      wcerr << L"Invalid integer for list index: " << in[1] << endl;
+      return false;
+    }
+
+    if (ix < 0) {
+      unsigned len = llength(in[0], interp);
+      ix += len;
+
+      if (ix < 0) {
+        wcerr << L"Integer out of range for list index: "
+              << in[1] << L" (list length is " << len << L")" << endl;
+        return false;
+      }
+    }
+
+    //We must loop one additional time since the first call returns the zeroth
+    //item.
+    ++ix;
+
+    wstring remainder(in[0]), carout[2];
+    unsigned len = 0;
+    while (ix && car(carout, &remainder, interp, 1)) {
+      --ix, ++len;
+      remainder = carout[1];
+    }
+
+    if (ix) {
+      wcerr << L"Integer out of range for list index: "
+            << in[1] << L" (list length is " << len << L")" << endl;
+      return false;
+    }
+
+    out[0] = carout[0];
+    return true;
+  }
+
   static GlobalBinding<TFunctionParser<2,1,list::car> >
   _listCar(L"list-car");
   static GlobalBinding<TFunctionParser<1,1,list::escape> >
@@ -182,4 +239,8 @@ namespace tglng {
   _listFold(L"list-fold");
   static GlobalBinding<TFunctionParser<1,2,list::filter> >
   _listFilter(L"list-filter");
+  static GlobalBinding<TFunctionParser<1,1,list::length> >
+  _listLength(L"list-length");
+  static GlobalBinding<TFunctionParser<1,2,list::ix> >
+  _listIndex(L"list-ix");
 }

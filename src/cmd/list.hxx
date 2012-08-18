@@ -32,6 +32,18 @@ namespace tglng {
     bool car(std::wstring*, const std::wstring*, Interpreter&, unsigned);
 
     /**
+     * Returns the length of the given list.
+     */
+    unsigned llength(const std::wstring&, Interpreter& interp);
+
+    /**
+     * Returns the length of the given list.
+     *
+     * (length <- list)
+     */
+    bool length(std::wstring*, const std::wstring*, Interpreter&, unsigned);
+
+    /**
      * Returns the item at the given index within the given list.
      *
      * (item <- list index)

@@ -329,6 +329,8 @@ list-append λ           (list <- list item)
 
 list-ix λ               (item <- list index)
 
+list-len λ              (length <- list)
+
 list-convert            ["%" /[^%]+/:preprocessor="default-tokeniser-pre" "%"]
                         ["#" /[^#]+/:tokeniser="defauls-tokeniser" "#"]
                         [("+" | "-") H...:options=""]
