@@ -158,4 +158,75 @@ namespace tglng {
   };
 
   static GlobalBinding<LambdaParser> _lambda(L"lambda");
+
+  class DynamicFunctionInvocation: public FunctionInvocation {
+    auto_ptr<Command> dynfun;
+
+  public:
+    DynamicFunctionInvocation(Command* left,
+                              auto_ptr<Command>& dynfun_,
+                              const wstring& outregs,
+                              const vector<Command*> args)
+    : FunctionInvocation(left, Function(), outregs, args),
+      dynfun(dynfun_)
+    { }
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      wstring funname;
+      if (!interp.exec(funname, dynfun.get())) return false;
+
+      map<wstring,CommandParser*>::const_iterator it =
+        interp.commandsL.find(funname);
+      if (it == interp.commandsL.end()) {
+        wcerr << L"tglng: error: In dynamic function invocation: "
+              << L"No such command: " << funname << endl;
+        return false;
+      }
+
+      if (!it->second->function(function)) {
+        wcerr << L"tglng: error: In dynamic function invocation: "
+              << L"Not a function: " << funname << endl;
+        return false;
+      }
+
+      return FunctionInvocation::exec(dst, interp);
+    }
+  };
+
+  class FunctionCallParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp,
+                              Command*& out,
+                              const wstring& text,
+                              unsigned& offset) {
+      auto_ptr<Command> fun;
+      wstring outputs;
+      vector<Command*> inputs;
+      bool done = false;
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(), a.a(fun),
+             -(a.x(L'['), (a.x(L']') | a.to(outputs, L']'))),
+             a.x(L'('), -a.x(done, L')')])
+        goto error;
+
+      while (!done) {
+        auto_ptr<Command> arg;
+        if (!a[a.a(arg), (a.x(L',') | a.x(done, L')'))])
+          goto error;
+
+        inputs.push_back(arg.release());
+      }
+
+      out = new DynamicFunctionInvocation(out, fun,
+                                          outputs, inputs);
+      return ContinueParsing;
+
+      error:
+      for (unsigned i = 0; i < inputs.size(); ++i)
+        delete inputs[i];
+      return ParseError;
+    }
+  };
+
+  static GlobalBinding<FunctionCallParser> _call(L"call");
 }

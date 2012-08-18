@@ -15,50 +15,42 @@
 using namespace std;
 
 namespace tglng {
-  class FunctionInvocation: public Command {
-    Function function;
-    wstring outregs;
-    //Can't use auto_ptrs in a vector.
-    vector<Command*> arguments;
+  FunctionInvocation::FunctionInvocation(Command* left,
+                                         Function fun,
+                                         const wstring& outregs_,
+                                         const vector<Command*> args)
+  : Command(left),
+    function(fun),
+    outregs(outregs_),
+    arguments(args)
+  { }
 
-  public:
-    FunctionInvocation(Command* left,
-                       Function fun,
-                       const wstring& outregs_,
-                       const vector<Command*> args)
-    : Command(left),
-      function(fun),
-      outregs(outregs_),
-      arguments(args)
-    { }
+  FunctionInvocation::~FunctionInvocation() {
+    for (unsigned i = 0; i < arguments.size(); ++i)
+      delete arguments[i];
+  }
 
-    virtual ~FunctionInvocation() {
-      for (unsigned i = 0; i < arguments.size(); ++i)
-        delete arguments[i];
-    }
-
-    virtual bool exec(wstring& dst, Interpreter& interp) {
-      vector<wstring> out(function.outputArity);
-      vector<wstring> in (function.inputArity );
-      wstring discard;
-      //Evaluate the arguments
-      for (unsigned i = 0; i < arguments.size(); ++i)
-        if (!interp.exec(i < in.size()? in[i] : discard, arguments[i]))
-          return false;
-
-      //Call the function
-      if (!function.exec(&out[0], &in[0], interp, function.parm))
+  bool FunctionInvocation::exec(wstring& dst, Interpreter& interp) {
+    vector<wstring> out(function.outputArity);
+    vector<wstring> in (function.inputArity );
+    wstring discard;
+    //Evaluate the arguments
+    for (unsigned i = 0; i < arguments.size(); ++i)
+      if (!interp.exec(i < in.size()? in[i] : discard, arguments[i]))
         return false;
 
-      //Set outregs
-      for (unsigned i = 1; i < out.size() && i-1 < outregs.size(); ++i)
-        interp.registers[outregs[i-1]] = out[i];
+    //Call the function
+    if (!function.exec(&out[0], &in[0], interp, function.parm))
+      return false;
 
-      //Result in primary output
-      dst = out[0];
-      return true;
-    }
-  };
+    //Set outregs
+    for (unsigned i = 1; i < out.size() && i-1 < outregs.size(); ++i)
+      interp.registers[outregs[i-1]] = out[i];
+
+    //Result in primary output
+    dst = out[0];
+    return true;
+  }
 
   FunctionParser::FunctionParser(Function fun_)
   : fun(fun_) {}

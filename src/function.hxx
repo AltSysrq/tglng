@@ -2,6 +2,7 @@
 #define FUNCTION_HXX_
 
 #include <string>
+#include <vector>
 
 #include "command.hxx"
 
@@ -144,6 +145,34 @@ namespace tglng {
   public:
     TFunctionParser()
     : FunctionParser(Function(OutputArity, InputArity, Exec)) {}
+  };
+
+  /**
+   * Represents an arbitrary function invocation.
+   * This class should be considered sealed except to
+   * DynamicFunctionInvocation.
+   */
+  class FunctionInvocation: public Command {
+    friend class DynamicFunctionInvocation;
+    Function function;
+    std::wstring outregs;
+    //Can't use auto_ptrs in a vector
+    std::vector<Command*> arguments;
+
+  public:
+    /**
+     * Creates a FunctionInvocation with the given parms.
+     *
+     * @param fun The function to execute
+     * @param outregs The registers to write secondary outputs to
+     * @param args A list of Commands to execute for each input.
+     */
+    FunctionInvocation(Command*, Function fun,
+                       const std::wstring& outregs,
+                       const std::vector<Command*> args);
+
+    virtual ~FunctionInvocation();
+    virtual bool exec(std::wstring&, Interpreter&);
   };
 }
 
