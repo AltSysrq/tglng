@@ -75,7 +75,7 @@ namespace tglng {
     }
 
   private:
-    static bool adapter(std::wstring& out, const std::wstring* in,
+    static bool adapter(std::wstring* out, const std::wstring* in,
                         Interpreter& interp, unsigned) {
       std::auto_ptr<Command>
         lhs(new SelfInsertCommand(NULL, in[0])),

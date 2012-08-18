@@ -11,21 +11,21 @@
 #include "../command.hxx"
 #include "../argument.hxx"
 #include "../interp.hxx"
+#include "basic_parsers.hxx"
 #include "../common.hxx"
 
 using namespace std;
 
 namespace tglng {
   template<typename Operation, bool Div>
-  class ArithmeticCommand: public Command {
-    auto_ptr<Command> lhs, rhs;
+  class ArithmeticCommand: public BinaryCommand {
     Operation op;
 
   public:
     ArithmeticCommand(Command* left,
                       auto_ptr<Command>& l,
                       auto_ptr<Command>& r)
-    : Command(left), lhs(l), rhs(r)
+    : BinaryCommand(left, l, r)
     { }
 
     virtual bool exec(wstring& dst, Interpreter& interp) {
@@ -55,18 +55,8 @@ namespace tglng {
   };
 
   template<typename Operation, bool Div>
-  class ArithmeticParser: public CommandParser {
-  public:
-    virtual ParseResult parse(Interpreter& interp, Command*& out,
-                              const wstring& text,
-                              unsigned& offset) {
-      auto_ptr<Command> lhs, rhs;
-      ArgumentParser a(interp, text, offset, out);
-      if (!a[a.h(), a.a(lhs), a.a(rhs)]) return ParseError;
-
-      out = new ArithmeticCommand<Operation,Div>(out, lhs, rhs);
-      return ContinueParsing;
-    }
+  class ArithmeticParser:
+  public BinaryCommandParser<ArithmeticCommand<Operation,Div> > {
   };
 
   static GlobalBinding<ArithmeticParser<plus<signed>,
