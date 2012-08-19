@@ -366,6 +366,10 @@ lambda          x\ λ    ["[" /[^\]]*/:outvars = "" "]"]
 
 call            (none)  A:function <standard function syntax>
 
+let             (none)  /[^#]+/:name "#" "=" A:value ...:body
+
+set             (none)  /[^#]+/:name "#" "=" A:value
+
 meta            (none)  (none)
 Results in a string containing only the escape character.
 
