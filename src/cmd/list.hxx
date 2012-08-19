@@ -16,6 +16,11 @@ namespace tglng {
 
     /**
      * Appends the given (unescaped) item to the given list.
+     */
+    void lappend(std::wstring& list, const std::wstring& item);
+
+    /**
+     * Appends the given (unescaped) item to the given list.
      *
      * (list <- list item)
      */

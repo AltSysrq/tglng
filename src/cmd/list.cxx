@@ -66,6 +66,17 @@ namespace tglng {
     return true;
   }
 
+  void list::lappend(wstring& list, const wstring& item) {
+    if (list.empty())
+      escape(&list, &item, *(Interpreter*)NULL, 0);
+    else {
+      wstring escaped;
+      escape(&escaped, &item, *(Interpreter*)NULL, 0);
+      list += L' ';
+      list += escaped;
+    }
+  }
+
   bool list::append(wstring* out, const wstring* in,
                     Interpreter& interp, unsigned) {
     if (!escape(out, in+1, interp, 0)) return false;
@@ -119,13 +130,11 @@ namespace tglng {
 
     wstring remainder(in[1]), item;
     while (lcar(item, remainder, remainder, interp)) {
-      wstring appin[2];
-      if (!fun.exec(appin+1, &item, interp, fun.parm))
+      wstring result;
+      if (!fun.exec(&result, &item, interp, fun.parm))
         return false;
 
-      appin[0] = out[0];
-      if (!append(out, appin, interp, 0))
-        return false;
+      lappend(out[0], result);
     }
 
     return true;
@@ -162,16 +171,12 @@ namespace tglng {
     out[0].clear();
     wstring remainder(in[1]), item;
     while (lcar(item, remainder, remainder, interp)) {
-      wstring appin[2];
-      if (!fun.exec(appin+1, &item, interp, fun.parm))
+      wstring result;
+      if (!fun.exec(&result, &item, interp, fun.parm))
         return false;
 
-      if (parseBool(appin[1])) {
-        appin[1] = item;
-        appin[0] = out[0];
-        if (!append(out, appin, interp, 0))
-          return false;
-      }
+      if (parseBool(result))
+        lappend(out[0], item);
     }
 
     return true;
