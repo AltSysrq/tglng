@@ -110,6 +110,12 @@ namespace tglng {
         return ParseError;
       }
 
+      if (cit->second->isTemporary) {
+        interp.error(wstring(L"Command cannot be bound: ") + cname,
+                     text, cnameOffset);
+        return ParseError;
+      }
+
       eit->second->bind(shortname, cit->second);
       return ContinueParsing;
     }

@@ -15,6 +15,19 @@ namespace tglng {
    */
   class CommandParser {
   public:
+    /**
+     * Indicates whether this CommandParser exists only temporarily in
+     * Interpreter::commandsL. If true, the CommandParser may be deleted at a
+     * time before the Interpreter is destroyed; this means that it cannot be
+     * bound to a short command.
+     *
+     * Defaults to false.
+     */
+    bool isTemporary;
+
+    ///Default constructor
+    CommandParser() : isTemporary(false) {}
+
     virtual ~CommandParser() {}
     /**
      * Tries to parse the given text into a command understood by this

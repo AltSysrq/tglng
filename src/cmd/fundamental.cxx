@@ -86,6 +86,12 @@ namespace tglng {
         return ParseError;
       }
 
+      if (it->second->isTemporary) {
+        interp.error(wstring(L"Command cannot be bound: ") + longName,
+                     text, nameStart);
+        return ParseError;
+      }
+
       //Save the new binding, replacing anything that was there before.
       //Since commandsS doesn't own the CommandParser*s, we don't need to check
       //this.
