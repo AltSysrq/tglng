@@ -40,12 +40,21 @@ namespace tglng {
     map<wstring,CommandParser*>::const_iterator it =
       interp.commandsL.find(name);
 
+    CommandParser* parser;
+
     if (it == interp.commandsL.end()) {
-      interp.error(wstring(L"No such command: ") + name, text, origOffset);
-      return ParseError;
+      //If it's a single character, try a short name
+      if (name.size() == 1 && interp.commandsS.count(name[0])) {
+        parser = interp.commandsS[name[0]];
+      } else {
+        interp.error(wstring(L"No such command: ") + name, text, origOffset);
+        return ParseError;
+      }
+    } else {
+      parser = it->second;
     }
 
-    return it->second->parse(interp, out, text, offset);
+    return parser->parse(interp, out, text, offset);
   }
 
   static GlobalBinding<LongModeCmdParser> _longModeCmdParser(L"long-mode-cmd");
