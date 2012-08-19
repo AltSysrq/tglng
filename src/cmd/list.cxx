@@ -260,6 +260,22 @@ namespace tglng {
     return true;
   }
 
+  bool list::flatten(wstring* out, const wstring* in,
+                     Interpreter& interp, unsigned) {
+    wstring list, lists(in[0]);
+    out[0].clear();
+    while (lcar(list, lists, lists, interp)) {
+      if (out[0].empty())
+        out[0] = list;
+      else {
+        out[0] += L' ';
+        out[0] += list;
+      }
+    }
+
+    return true;
+  }
+
   static GlobalBinding<TFunctionParser<2,1,list::car> >
   _listCar(L"list-car");
   static GlobalBinding<TFunctionParser<1,1,list::escape> >
@@ -278,4 +294,6 @@ namespace tglng {
   _listIndex(L"list-ix");
   static GlobalBinding<TFunctionParser<1,1,list::zip> >
   _listZip(L"list-zip");
+  static GlobalBinding<TFunctionParser<1,1,list::flatten> >
+  _listFlatten(L"list-flatten");
 }
