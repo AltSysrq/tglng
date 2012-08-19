@@ -434,4 +434,62 @@ namespace tglng {
   };
 
   static GlobalBinding<ListConvertParser> _listConvert(L"list-convert");
+
+  class ListConstructor: public Command {
+    vector<Command*> elts;
+
+  public:
+    ListConstructor(Command* left,
+                    const vector<Command*>& elts_)
+    : Command(left), elts(elts_)
+    { }
+
+    virtual ~ListConstructor() {
+      for (unsigned i = 0; i < elts.size(); ++i)
+        delete elts[i];
+    }
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      dst.clear();
+
+      wstring elt;
+      for (unsigned i = 0; i < elts.size(); ++i) {
+        if (!interp.exec(elt, elts[i]))
+          return false;
+        list::lappend(dst, elt);
+      }
+
+      return true;
+    }
+  };
+
+  class ListConstructorParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp, Command*& out,
+                              const wstring& text, unsigned& offset) {
+      vector<Command*> elts;
+      bool done(false);
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(), a.x(L'('), -a.x(done, L')')])
+        goto error;
+
+      while (!done) {
+        auto_ptr<Command> elt;
+        if (!a[a.a(elt), (a.x(L',') | a.x(done, L')'))])
+          goto error;
+
+        elts.push_back(elt.release());
+      }
+
+      out = new ListConstructor(out, elts);
+      return ContinueParsing;
+
+      error:
+      for (unsigned i = 0; i < elts.size(); ++i)
+        delete elts[i];
+      return ParseError;
+    }
+  };
+
+  static GlobalBinding<ListConstructorParser> _listCtor(L"list");
 }
