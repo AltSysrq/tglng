@@ -236,6 +236,30 @@ namespace tglng {
     return true;
   }
 
+  bool list::zip(wstring* out, const wstring* in,
+                 Interpreter& interp, unsigned) {
+    vector<wstring> lists;
+    wstring item, remainder(in[0]);
+
+    while (lcar(item, remainder, remainder, interp))
+      lists.push_back(item);
+
+    out[0].clear();
+    bool someListIsNonEmpty;
+    do {
+      someListIsNonEmpty = false;
+
+      for (unsigned i = 0; i < lists.size(); ++i) {
+        if (lcar(item, lists[i], lists[i], interp))
+          lappend(out[0], item);
+
+        someListIsNonEmpty |= !lists[i].empty();
+      }
+    } while (someListIsNonEmpty);
+
+    return true;
+  }
+
   static GlobalBinding<TFunctionParser<2,1,list::car> >
   _listCar(L"list-car");
   static GlobalBinding<TFunctionParser<1,1,list::escape> >
@@ -252,4 +276,6 @@ namespace tglng {
   _listLength(L"list-length");
   static GlobalBinding<TFunctionParser<1,2,list::ix> >
   _listIndex(L"list-ix");
+  static GlobalBinding<TFunctionParser<1,1,list::zip> >
+  _listZip(L"list-zip");
 }
