@@ -32,6 +32,15 @@ namespace tglng {
     bool car(std::wstring*, const std::wstring*, Interpreter&, unsigned);
 
     /**
+     * Splits the given list into the first element and the tail. Returns
+     * whether the list was non-empty.
+     *
+     * list may be the same object as car and/or cdr.
+     */
+    bool lcar(std::wstring& car, std::wstring& cdr,
+              const std::wstring& list, Interpreter&);
+
+    /**
      * Returns the length of the given list.
      */
     unsigned llength(const std::wstring&, Interpreter& interp);

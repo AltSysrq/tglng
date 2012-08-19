@@ -74,23 +74,38 @@ namespace tglng {
     return true;
   }
 
-  bool list::car(wstring* out, const wstring* in,
-                 Interpreter& interp, unsigned silent) {
+  bool list::lcar(wstring& car, wstring& cdr,
+                  const wstring& list, Interpreter& interp) {
     wstring preout[2], prein[2];
-    prein[0] = in[0];
+    prein[0] = list;
     prein[1] = L"e";
     if (!defaultTokeniserPreprocessor(preout, prein,
                                       interp, 0))
       return false;
 
     if (preout[0].empty()) {
-      if (!silent)
-        wcerr << L"tglng: error: list-car: empty list" << endl;
       return false;
     }
 
     prein[0] = preout[0];
-    return defaultTokeniser(out, prein, interp, 0);
+
+    if (!defaultTokeniser(preout, prein, interp, 0))
+      return false;
+
+    car = preout[0];
+    cdr = preout[1];
+    return true;
+  }
+
+  bool list::car(wstring* out, const wstring* in,
+                 Interpreter& interp, unsigned silent) {
+    if (lcar(out[0], out[1], in[1], interp))
+      return true;
+    else {
+      if (!silent)
+        wcerr << L"tglng: error: list-car: empty list" << endl;
+      return false;
+    }
   }
 
   bool list::map(wstring* out, const wstring* in,
@@ -102,15 +117,13 @@ namespace tglng {
 
     out[0].clear();
 
-    wstring carout[2];
-    wstring remainder(in[1]);
-    while (car(carout, &remainder, interp, 1)) {
+    wstring remainder(in[1]), item;
+    while (lcar(item, remainder, remainder, interp)) {
       wstring appin[2];
-      if (!fun.exec(appin+1, carout, interp, fun.parm))
+      if (!fun.exec(appin+1, &item, interp, fun.parm))
         return false;
 
       appin[0] = out[0];
-      remainder = carout[1];
       if (!append(out, appin, interp, 0))
         return false;
     }
@@ -127,16 +140,13 @@ namespace tglng {
 
     out[0] = in[2];
 
-    wstring carout[2];
-    wstring remainder(in[1]);
-    while (car(carout, &remainder, interp, 1)) {
+    wstring remainder(in[1]), item;
+    while (lcar(item, remainder, remainder, interp)) {
       wstring funin[2];
-      funin[0] = carout[0];
+      funin[0] = item;
       funin[1] = out[0];
       if (!fun.exec(out, funin, interp, fun.parm))
         return false;
-
-      remainder = carout[1];
     }
 
     return true;
@@ -150,32 +160,28 @@ namespace tglng {
       return false;
 
     out[0].clear();
-    wstring carout[2];
-    wstring remainder(in[1]);
-    while (car(carout, &remainder, interp, 1)) {
+    wstring remainder(in[1]), item;
+    while (lcar(item, remainder, remainder, interp)) {
       wstring appin[2];
-      if (!fun.exec(appin+1, carout, interp, fun.parm))
+      if (!fun.exec(appin+1, &item, interp, fun.parm))
         return false;
 
       if (parseBool(appin[1])) {
-        appin[1] = carout[0];
+        appin[1] = item;
         appin[0] = out[0];
         if (!append(out, appin, interp, 0))
           return false;
       }
-
-      remainder = carout[1];
     }
 
     return true;
   }
 
   unsigned list::llength(const wstring& list, Interpreter& interp) {
-    wstring remainder(list), carout[2];
+    wstring remainder(list), item;
     unsigned len = 0;
-    while (car(carout, &remainder, interp, 1)) {
+    while (lcar(item, remainder, remainder, interp)) {
       ++len;
-      remainder = carout[1];
     }
 
     return len;
@@ -210,11 +216,10 @@ namespace tglng {
     //item.
     ++ix;
 
-    wstring remainder(in[0]), carout[2];
+    wstring remainder(in[0]);
     unsigned len = 0;
-    while (ix && car(carout, &remainder, interp, 1)) {
+    while (ix && lcar(out[0], remainder, remainder, interp)) {
       --ix, ++len;
-      remainder = carout[1];
     }
 
     if (ix) {
@@ -223,7 +228,6 @@ namespace tglng {
       return false;
     }
 
-    out[0] = carout[0];
     return true;
   }
 
