@@ -342,7 +342,7 @@ list-fold λ             (reduction <- (reduction <- accum item) list [init=""])
 
 list-filter λ           (list <- (accept? <- item) list)
 
-list-assign             /[^#]+/:registers A:list
+list-assign             H...:registers S:list
 
 list-zip λ              (zipped <- list-of-lists)
 

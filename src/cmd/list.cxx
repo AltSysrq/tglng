@@ -325,4 +325,47 @@ namespace tglng {
   _listFlatten(L"list-flatten");
   static GlobalBinding<TFunctionParser<1,2,list::unzip> >
   _listUnzip(L"list-unzip");
+
+  class ListAssign: public Command {
+    wstring registers;
+    AutoSection sub;
+
+  public:
+    ListAssign(Command* left,
+               const wstring& registers_,
+               const Section& sub_)
+    : Command(left), registers(registers_), sub(sub_)
+    { }
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      wstring item, list;
+      if (!sub.exec(list, interp))
+        return false;
+
+      for (unsigned i = 0; i < registers.size() &&
+             list::lcar(item, list, list, interp); ++i)
+        interp.registers[registers[i]] = item;
+
+      dst = list;
+      return true;
+    }
+  };
+
+  class ListAssignParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp, Command*& out,
+                              const wstring& text, unsigned& offset) {
+      wstring registers;
+      AutoSection sub;
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(), a.ns(registers), a.s(sub)])
+        return ParseError;;
+
+      out = new ListAssign(out, registers, sub);
+      sub.clear();
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<ListAssignParser> _listAssign(L"list-assign");
 }
