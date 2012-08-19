@@ -93,7 +93,7 @@ namespace tglng {
      * tokenisation/trim step is only aware of escape sequences enough to know
      * to ignore the character after the backslash.
      *
-     * Default: false
+     * Default: true
      */
     bool escapeSequences;
 
@@ -162,6 +162,7 @@ namespace tglng {
     nuke();
     spacesAreDelims = true;
     coalesceDelims = true;
+    escapeSequences = true;
     static const wstring parens(L"()[]{}");
     for (unsigned i = 0; i < parens.size(); i += 2) {
       parentheses[parens[i]] = parens[i+1];
