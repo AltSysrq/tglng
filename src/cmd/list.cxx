@@ -10,6 +10,7 @@
 #include "../command.hxx"
 #include "../argument.hxx"
 #include "../function.hxx"
+#include "../tokeniser.hxx"
 #include "../common.hxx"
 #include "default_tokeniser.hxx"
 
@@ -368,4 +369,69 @@ namespace tglng {
   };
 
   static GlobalBinding<ListAssignParser> _listAssign(L"list-assign");
+
+  class ListConvert: public Command {
+    Tokeniser tokeniser;
+    AutoSection sub;
+
+  public:
+    ListConvert(Command* left,
+                const Tokeniser& tokeniser_,
+                const Section& sub_)
+    : Command(left), tokeniser(tokeniser_), sub(sub_)
+    { }
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      wstring item, list;
+      if (!sub.exec(list, interp))
+        return false;
+
+      tokeniser.reset(list);
+
+      dst.clear();
+      while (tokeniser.next(item))
+        list::lappend(dst, item);
+
+      return !tokeniser.error();
+    }
+  };
+
+  class ListConvertParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp, Command*& out,
+                              const wstring& text, unsigned& offset) {
+      Function init, next;
+      wstring sinit(L"default-tokeniser-pre"), snext(L"default-tokeniser"),
+        options;
+      unsigned initOff(0), nextOff(0);
+      AutoSection sub;
+      bool prependPlus(false), prependMinus(false);
+
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(),
+             -(a.x(L'%'), a.to(sinit, L'%') >> initOff),
+             -(a.x(L'#'), a.to(snext, L'#') >> nextOff),
+             -((a.x(prependPlus, L'+') | a.x(prependMinus, L'-')),
+               a.ns(options)),
+             a.s(sub)])
+        return ParseError;
+
+      if (!Function::get(init, interp, sinit, 2, 2,
+                         text, initOff, &Function::compatible))
+        return ParseError;
+      if (!Function::get(next, interp, snext, 2, 2,
+                         text, nextOff, &Function::matches))
+        return ParseError;
+
+      if      (prependPlus)  options.insert(0,1,L'+');
+      else if (prependMinus) options.insert(0,1,L'-');
+      out = new ListConvert(out,
+                            Tokeniser(interp, init, next, L"", options),
+                            sub);
+      sub.clear();
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<ListConvertParser> _listConvert(L"list-convert");
 }

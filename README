@@ -334,7 +334,7 @@ list-len λ              (length <- list)
 list-convert            ["%" /[^%]+/:preprocessor="default-tokeniser-pre" "%"]
                         ["#" /[^#]+/:tokeniser="defauls-tokeniser" "#"]
                         [("+" | "-") H...:options=""]
-                        A:input
+                        S:input
 
 list-map λ              (list <- (output <- input) list)
 
