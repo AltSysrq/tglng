@@ -74,7 +74,12 @@ namespace tglng {
     { }
 
     virtual bool exec(wstring& dst, Interpreter& interp) {
-      return interp.exec(var.get(), value.get());
+      dst.clear();
+      wstring val;
+      if (interp.exec(val, value.get())) {
+        var.get() = val;
+        return true;
+      } else return false;
     }
   };
 
@@ -114,9 +119,9 @@ namespace tglng {
   };
 
   class VariableGetParser: public CommandParser {
+  public:
     Variable var;
 
-  public:
     VariableGetParser(const Variable& var_)
     : var(var_) {}
 
@@ -169,4 +174,38 @@ namespace tglng {
   };
 
   static GlobalBinding<VariableLetParser> _let(L"let");
+
+  class VariableSetParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp, Command*& out,
+                              const wstring& text, unsigned& offset) {
+      wstring name;
+      auto_ptr<Command> value;
+      unsigned nameOffset;
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(), a.to(name, L'#') >> nameOffset, a.x(L'='), a.a(value)])
+        return ParseError;
+
+      map<wstring,CommandParser*>::const_iterator it =
+        interp.commandsL.find(name);
+
+      if (it == interp.commandsL.end()) {
+        interp.error(wstring(L"No such command: ") + name,
+                     text, nameOffset);
+        return ParseError;
+      }
+
+      VariableGetParser* vgp = dynamic_cast<VariableGetParser*>(it->second);
+      if (!vgp) {
+        interp.error(wstring(L"Not a variable (in this scope): ") + name,
+                     text, nameOffset);
+        return ParseError;
+      }
+
+      out = new VariableSet(out, vgp->var, value);
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<VariableSetParser> _set(L"set");
 }
