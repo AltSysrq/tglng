@@ -276,6 +276,33 @@ namespace tglng {
     return true;
   }
 
+  bool list::unzip(wstring* out, const wstring* in,
+                   Interpreter& interp, unsigned) {
+    signed stride = 2;
+    wstring item, list(in[0]);
+    if (!in[1].empty()) {
+      if (!parseInteger(stride, in[1]) || stride <= 1) {
+        wcerr << L"tglng: error: Invalid integer for list-unzip stride: "
+              << in[1] << endl;
+        return false;
+      }
+    }
+
+    vector<wstring> lists(stride);
+    while (!list.empty()) {
+      for (unsigned i = 0; i < lists.size() && !list.empty(); ++i) {
+        if (lcar(item, list, list, interp))
+          lappend(lists[i], item);
+      }
+    }
+
+    out[0].clear();
+    for (unsigned i = 0; i < lists.size(); ++i)
+      lappend(out[0], lists[i]);
+
+    return true;
+  }
+
   static GlobalBinding<TFunctionParser<2,1,list::car> >
   _listCar(L"list-car");
   static GlobalBinding<TFunctionParser<1,1,list::escape> >
@@ -296,4 +323,6 @@ namespace tglng {
   _listZip(L"list-zip");
   static GlobalBinding<TFunctionParser<1,1,list::flatten> >
   _listFlatten(L"list-flatten");
+  static GlobalBinding<TFunctionParser<1,2,list::unzip> >
+  _listUnzip(L"list-unzip");
 }
