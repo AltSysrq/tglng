@@ -85,7 +85,7 @@ namespace tglng {
       auto_ptr<Command> sub;
       wchar_t reg;
       ArgumentParser a(interp, text, offset, out);
-      if (!a[a.h(), a.h(reg), a.c(sub)]) return ParseError;
+      if (!a[a.h(), a.h(reg), a.a(sub)]) return ParseError;
 
       out = new WriteRegister(out, reg, sub);
       return ContinueParsing;
