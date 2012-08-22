@@ -223,6 +223,13 @@ namespace tglng {
     sentinel(sent)
   { }
 
+  static bool islongmodetermchar(wchar_t ch) {
+    return iswspace(ch) ||
+      ch == L'(' || ch == L')' ||
+      ch == L'[' || ch == L']' ||
+      ch == L'{' || ch == L'}';
+  }
+
   bool SentinelStringArgument::match() {
     if (!Argument::match()) return false;
 
@@ -232,7 +239,8 @@ namespace tglng {
 
     for (unsigned i = offset+1; i < text.size(); ++i)
       if (text[i] == sentinel ||
-          (interp.longMode && sentinel == L'#' && iswspace(text[i])))
+          (interp.longMode && sentinel == L'#' &&
+           islongmodetermchar(text[i])))
         return true;
 
     return false;
@@ -244,11 +252,12 @@ namespace tglng {
       ++offset;
     } while (text[offset] != sentinel &&
              (!interp.longMode || sentinel != L'#' ||
-              !iswspace(text[offset])));
+              (!islongmodetermchar(text[offset]))));
 
     dst = text.substr(start, offset-start);
-    //Past the terminating character
-    ++offset;
+    //Past the terminating character, if it is the sentinel
+    if (text[offset] == sentinel)
+      ++offset;
     return true;
   }
 

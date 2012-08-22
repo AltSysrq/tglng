@@ -58,7 +58,7 @@ Long Mode
 When the *long mode* flag is set, some behaviours change. Whenever a command is
 to be parsed, any alphabetic characters result in parsing the
 _<<long-mode-cmd>>_ command. In any case where a command uses a `#` as a
-delimiter, whitespace will also be accepted.
+delimiter, whitespace or any parenthesis-like character will also be accepted.
 
 Long mode is intended for scripting, where readability is more important than
 conciseness, and where most commands do not have short names.
