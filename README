@@ -1,424 +1,1506 @@
-TglNG -- Text Generation Language, Next Generation
+TGLNG(1)
+========
+Jason Lingle <jasonlingle@yahoo.com>
 
+NAME
 ----
+tglng - Text Generation Language, the Next Generation
 
-TglNG (pronounced "tag-along") is an interpreter for terse, ad-hoc text
-generation programs. It is made to fill the same role as Tgl, taking into
-account lessons learned from the latter.
+SYNOPSIS
+--------
+tglng
 
-BASIC CONCEPTS
+DESCRIPTION
+-----------
+TglNG (pronounced ``tag-along'') is a compact ``programming language'' for
+ad-hoc, one-time programmatic text generation. Its job is to transform an input
+string (a ``program'') into the (more verbose) output string the user desires.
 
-Every TglNG program consists of a command tree. A command is simply a reference
-to code which results in a string value; it generally also tracks other
-commands which it uses for inputs, thus forming the aforementioned tree. After
-parsing, the top-most command is executed, and its result is written to
-stdout. This stands in contrast to Tgl, which required the user to manually
-write to standard output.
+Currently, tglng reads user settings from _rc.default_ in the *current
+directory*, executes it, then reads and executes standard input and executes
+it, printing the result thereof to standard output. This behaviour will
+eventually change to something more sensible.
 
-Each command defines its own way of interpreting the characters which follow it
-in the input; this allows for significantly more expressiveness than was
-possible in Tgl.
+Any error messages are printed to standard error.
 
-CHARACTERS and STRINGS
+SYNTAX
+------
+TglNG has no definite syntax; rather, each command defines how the characters
+which follow it are interpreted. The higher-level lexical behaviour is defined
+by the current parsing mode and the state of the *long mode* flag, as well as
+the escape character.
 
-TglNG defines a "character" to be a single wchar_t. On systems like most
-GNU/Linux systems, this is always correct. However, on systems (like Windows)
-where wchar_t is used to store UTF-16, TglNG will not handle surrogate pairs,
-instead assuming the text is encoded in UCS-2. This is generally not an issue,
-unless you want to use Egyptian Heiroglyphics.
+Verbatim Parsing
+~~~~~~~~~~~~~~~~
+In verbatim mode, each character evaluates to the _<<self-insert>>_ command; ie,
+it will result in itself. Thus, any string parsed in verbatim mode will simply
+evaluate to itself.
 
-A "string" is any number of "character"s, with no constrains placed on the
-characters within.
+Literal Parsing
+~~~~~~~~~~~~~~~
+In literal mode, each character *other than the escape character* evaluates to
+the _<<self-insert>>_ command. The escape character will cause the following
+character to be parsed as if in command mode.
 
-A "name-char" is any character which is not considered to be whitespace
-according to the current locale.
+Command Parsing
+~~~~~~~~~~~~~~~
+In command mode, each character is looked up in the interpreters short-command
+table. That is, each character determines which command is parsed. The only
+exception is the current escape character, which is parsed as a command which
+evaluates to the empty string (_<<no-op>>_).
 
-PARSING
+Once a command is looked up, control over parsing is handed to the command
+parser. Parsing resumes where the command left off. It is an error if the
+command cannot be found.
 
-All input code is parsed before execution. When a command is parsed, the
-command is provided with two inputs:
-o The command tree which precedes the command being parsed.
-o The characters from the command to the end of the string.
-If the command parses successfully, it results in:
-o The new command-tree which represents the combined inputs.
-o The characters which remain to be parsed.
+Long Mode
+~~~~~~~~~
+When the *long mode* flag is set, some behaviours change. Whenever a command is
+to be parsed, any alphabetic characters result in parsing the
+_<<long-mode-cmd>>_ command. In any case where a command uses a `#` as a
+delimiter, whitespace will also be accepted.
 
-To make use of TglNG as fluid as possible, there are four modes of command
-parsing:
-o Verbatim mode. Every individual character is recognised as the self-insert
-  command.
-o Literal mode. The configured escape character (default `) is recognised as
-  the single-command command, and all others are the self-insert command.
-o Command mode. Every character is looked up as the command bound to it, except
-  for the escape character, which is assumed to be no-op, and space/control
-  characters, which are implicitly the no-op command.
-o Long mode. Used when the long-mode flag is set and command mode would
-  otherwise be used. Alphanumeric characters are interpreted as long-mode-cmd;
-  all others as if Command mode were in use.
+Long mode is intended for scripting, where readability is more important than
+conciseness, and where most commands do not have short names.
 
-EXECUTION
+The *long mode* flag can be set with the _<<long-mode>>_ command, and cleared
+with the _<<short-mode>>_ command.
 
-When parsing completes successfully, the top-most command is executed and its
-result printed, if successful. While TglNG tries to be more declarative in
-nature --- such that execution order would not matter --- it does have some
-imperative features. Therefore, most commands will perform strict left-to-right
-evaluation when not dictated otherwise by the user.
+DATA TYPES
+----------
+Every value in TglNG is a string. A ``string'' is defined to be any sequence of
+any number of arbitrary *wchar_t's* (a ``wchar_t'' being whatever your system
+considers to be a ``character'').
+
+NOTE: A ``character'' by this definition is not necessarily a single,
+printable character. On sane systems which use a UCS encoding (eg, GNU/Linux,
+where wchar_t is used to encode UCS-4), each character represents a single
+Unicode code-point; a single real character, except for the combining
+characters. On Windows, each ``character'' is a UTF-16 encoding element; since
+TglNG assumes that the format is UCS-2, it is possible to obtain invalid
+strings by splitting surrogate pairs. This will only happen if you use
+characters outside the Basic Multilingual Plane (eg, Egyptian Heiroglyphics).
+
+[[Number,Number]]
+Numbers
+~~~~~~~
+Some commands may need to interpret strings as numbers. A valid number is
+composed of the following components (none are case-sensitive):
+
+- Any number of whitespace characters.
+- An optional `+` or `-` character, indicating positive or negative sign,
+  respectively. If omitted, positive is assumed.
+- An optional base indicator. +0x+ indicates hexadecimal (base-16), +0o+
+  indicates octal (base-8), and +0b+ indicates binary (base-2). The absence of a
+  base indicator indicates decimal (base-10).
+- One or more digits, a digit being defined by the base.
+- Any number of whitespace characters.
+
+[[Boolean,Boolean]]
+Booleans
+~~~~~~~~
+When a command tests whether a string is ``true'' or ``false'', the following
+rules apply:
+
+- The empty string is *false*.
+- If the string is a valid _<<Number>>_, and that
+  _<<Number>>_ is equal to zero, the string is considered *false*.
+- Any other string is *true*.
+
+COMMANDS
+--------
+The Command is the fundamental unit of execution. Each command is responsible
+for dictating how to interpret the characters to its right, how to execute the
+results, as well as how and when to execute the string of commands to its
+logical left. (When possible, the builtin commands follow left-to-right
+evaluation unless it produces in unintuitive results.)
+
+Every command has exactly one *long name*, which is a non-empty string. The
+*long name* uniquely identifies the command within the interpreter. Commands
+may also be bound to one or more *short names*, which are single characters
+used for command resolution in *command mode*.
+
+Functions
+~~~~~~~~~
+A function is a special type of command with the following properties:
+
+- It is stateless.
+- Its semantics do not depend on the text surrounding it.
+
+More precicely, a function is a command which takes zero or more strings as
+inputs, and produces one or more strings of output.
+
+The arity of a function is expressed as
++(output-arity <- input-arity)+; when defining the arguments themselves, a
+similar syntax is used. For example, +(output1 output2 <- input1 input2)+.
 
 REGISTERS
+---------
+Registers are the primary run-time mutable data containers. Each register is
+represented by a single character, and either contains an arbitrary string
+value, or is undefined.
 
-The TglNG interpreter allows the user to define any number of registers, each
-bound to a single name-char. At any given time, a defined register holds
-exactly one arbitrary string. Attempting to read from an undefined register is
-an error.
+Registers are not internally used by TglNG; all are only meaningful to the
+user. Any register may be read, written, or unset at any time, except that it
+is an error to read from an undefined (unset) register.
 
-NUMBERS
+Register values will eventually be preserved across executions, but currently
+they are not. All registers are initially undefined.
 
-Any string matching the following regular expression is considered a number by
-TglNG (not case-sensitive):
-  \s*[+-]?([0-9]+|0x[0-9A-F]+|0o[0-7]+|0b[01]+)\s*
+STANDARD ARGUMENT FORMATS
+-------------------------
+While each command defines its own syntax, there are a number of argument types
+shared by the majority of commands.
 
-The usual interpretations apply; 0x indicates hexadecimal, 0o octal, and 0b
-binary. The interpreter uses the C int type to store integers, so be wary of
-overflows when performing arithmetic on large values.
+Whenever an argument is to be parsed, all leading whitespace is implicitly
+skipped.
 
-BOOLEANS
+[[STS,STS]]
+STS: Sentinel-Terminated String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A sentinel-terminated string consists of all characters from the first
+character considered (which is included) to the specified sentinel character
+(which is not included); the resulting string must be non-empty. The sentinel
+is consumed by the argument, so it is not included in further parsing. If the
+sentinel is `#` and the *long mode* flag is set, any whitespace character will
+be considered a sentinel as well.
 
-A string is considered boolean false if it is the empty string or if it is a
-valid integer representation of zero. Any other string is considered true.
+[[NSS,NSS]]
+NSS: Non-Section String
+~~~~~~~~~~~~~~~~~~~~~~~
+A non-section string consists of all characters from the first character
+considered (which is included) to the first character encountered which is a
+valid _<<SEC>>_ specifier, which is not included and not consumed (so parsing
+continues with the _<<SEC>>_ specifier). The string must be non-empty.
 
-STANDARD ARGUMENTS
+[[ANS,ANS]]
+ANS: Alphanumeric String
+~~~~~~~~~~~~~~~~~~~~~~~~
+An alphanumeric string is a non-empty sequence of contiguous alphanumeric
+characters, all of which are consumed by parsing.
 
-While every command defines its own syntax, most of them share the same syntax
-for parsing their arguments. In all cases, leading whitespace is skipped.
+[[CHR,CHR]]
+CHR: Character
+~~~~~~~~~~~~~~
+Matches and consumes a single, arbitrary non-whitespace character.
 
-Numeric (N):
-Identified by a digit, '+', or '-'. Reads in characters which constitute a
-single integer (see the NUMBERS section) until a non-number character, or a
-sign beyond the first character, is encountered.
+[[NUM,NUM]]
+NUM: Numeric
+~~~~~~~~~~~~
+Consumes a sequence of characters which match the definition of a legal
+_<<Number>>_.
 
-Register (R):
-Not identifiable; when multiple argument types are possible, Register is always
-the last one tried. A register argument is simply a single name-char.
+[[ART,ART]]
+ART: Arithmetic
+~~~~~~~~~~~~~~~
+The arithmetic type has different behaviours based on the first couple
+characters it encounters.
 
-Command (C):
-Not identifiable; when multiple argument types are possible, Command is always
-the last one tried. A command arguemnt is a single command which is parsed in
-its entirety.
+If the first character is a digit, or a minus followed by a digit, the argument
+resolves to a single command which produces a string equivalent to the
+_<<NUM>>_ argument that would have been parsed.
 
-Section (S):
-Identified by one of the characters described below. A section refers to one or
-two "captured" command trees. Each section has a left and right part; the left
-part, if present, is the command tree to the right of the command being parsed,
-and is thus not sensitive to the parsing mode of the section argument; the
-right part, if present, is the result of parsing text to the right of the
-section argument.
+In any other case, a single command is parsed as if in command parsing mode.
 
-Arithmetic (A):
-An arithmetic argument is either a numeric which does not start with a plus
-sign, or a command.
+[[SEC,SEC]]
+SEC: Section
+~~~~~~~~~~~~
+A section is a pair of command sequences, ``left'' and ``right'', which capture
+parts of the surrounding text (usually). The section type is determined by a
+single character.
 
-Character (H):
-A single character.
+The `<` specifier captures the command sequence to the left of the command
+being parsed, and stores it in the left part of the section. After parsing this
+specifier, the left-hand command sequence for the command is empty.
 
-The section argument proper is a single character:
-< Captures only the left command tree for this section.
-> Captures all text to the right of the argument and parses it in literal
-  mode.
-: Parses one command to the right in command mode, and uses that as the right
-  part of the section.
-| Captures the left command tree as well as all text to the right of the
-  argument; the right part is parsed in literal mode.
-( Captures text to the right of the command, parsing it in comand mode, until a
-  close-paren ) command is parsed at top-level.
-[ Captures text to the right of the command, parsing it in literal mode, until
-  a close-bracket ] command is parsed at top-level.
-{ Captures text to the right of the command, parsing it in verbatim mode. Stops
-  when the matching } (allowing braces, but no other characters, to nest) is
-  found.
-$ Uses the next name-char after the argument as a register name. The section's
-  right-hand part is a command-tree which results in that register's content.
+The `>` specifier parses commands to the right in literal parsing mode until
+parsing stops, and stores the resulting sequence in the right part of the
+section.
+
+The `:` specifier parses a single command in command parsing mode, and stores
+that into the right part of the section.
+
+The `|` specifier is a combination of `<` and `>`: It captures the command
+sequence to the left of the current command into the left part of the section,
+and parses comands in literal mode into the right part until parsing stops.
+
+The `(` specifier parses text to the right in command parsing mode until
+parsing stops, storing the command sequence into the right part of the
+section. It is an error if parsing stops for any reason other than a `)`.
+
+The `[` specifier parses text to the right in literal parsing mode until
+parsing stops, storing the command sequence into the right part of the
+section. It is an error if parsing stops for any reason other than a `]`.
+
+The `{` specifier reads text to the right until a *matching* `}` is
+encountered. (That is, the braces may be nested.) A command which produces that
+exact text (eg, via verbatim parsing mode) is stored into the right part of the
+section.
+
+The `$` specifier reads one character to the right. That character is used as a
+register name; a command which results in the contents of that register (at
+runtime) is stored in the right part of the section.
+
+[[Standard-Function-Syntax,Standard Function Syntax]]
+STANDARD FUNCTION SYNTAX
+------------------------
+Many commands which are functions, but not useful in user-level code, use the
+standard function syntax. All user-defined commands also use this syntax.
+
+After the command invocation itself, there are two blocks of elements:
+
+- An optional string of register names enclosed in square brackets `[]`. These
+  registers capture the outputs of the function, other than the first output,
+  which is the result of the function. If fewer registers than secondary
+  outputs are given, the unbound secondary outputs are discarded. If more are
+  given, those registers beyond the last secondary output are not modified. If
+  the output block is omitted, no secondary outputs are captured.
+- A mandatory list of comma-separated _<<ART>>_ arguments, enclosed in
+  parentheses. Each argument is evaluated, left to right. If not enough
+  arguments are given, the other arguments to the function are empty
+  strings. If too many arguments are given, the excess arguments are evaluated
+  and their results discarded.
+
+For example, the call
+----------------
+#default-tokeniser#[r]({1 2 3})
+----------------
+would result in the string "1", and store "2 3" into register *r*. The
+_options_ argument to the function is the empty string, since it was not
+given.
 
 BUILTIN COMMANDS
-
-Every command has a "long name", which is (by convention) a string describing
-what the command does, words separated by hyphens. Commands may be bound to
-"short names", which are single name-chars recognised by the parser. Unless
-otherwise noted, the short name for a command listed below is simply assigned
-in the defaul configuration.
-
-Each command description specifies its arguments in up to three ways:
-o Types: A single character indicating the standard argument type.
-o Regexen: A regex of characters that will match, enclosed in /slashes/.
-o Literal characters: A string inside "double quotes" which matches the
-  character(s) exactly.
-
-If a colon and a name follows an arument specifier, whatever matched the
-argument is named by that name in the command description. If an equals and a
-value follows a name, the value is the default if the argument is
-omitted. Unquoted parentheses and brackets indicate grouping; brackets
-additionally indicate optionality. An unquoted pipe indcates different
-possibilities. When the long-mode flag is set, whitespace is also accepted for
-single-character-terminated strings (eg, in bind).
-
-Unless otherwise noted, any command's result is implicitly appended to the
-result of the left-hand code, unless the left-hand is captured by a
-section. Commands whose long name is followed by a λ can be used as functions
-(see the FUNCTIONS section for information on functions and what "standard
-function syntax" means).
-
-long-command    #       /[^#]+#/:command-name
-Executes command-name (excluding the tailing '#') by looking it up by its long
-name and parsing the matching command as if the trailing '#' were its short
-name. The short name of this command is hard-wired, since it would otherwise be
-impossible to call any commands.
-
-self-insert     (none)  (none)
-Results in a one-character string which is the same as the apparent short name
-of the command.
-
-no-op λ         (none)  (none)
-Results in the empty string.
-
-section-command {[(      ...:commands
-Treats its own character as a section argument, and executes that section.
-
-close-paren     )       (none)
-Terminates parsing due to closing parenthesis.
-
-close-bracket   ]       (none)
-Terminates parsing due to closing bracket.
-
-close-brace     }       (none)
-Terminates parsing due to closing brace.
-
-if              i       S:condition S:then [S:else={}]
-If the result of condition is true, return the result of evaluating then;
-otherwise, return the result of evaluating else (default an empty string).
-
-false-coalesce  I       S:test S:otherwise
-If the result of test is true, result in that; otherwise, evaluate otherwise
-and use its result.
-
-for-integer     f       [A:limit=10 [R:reg=i [A:init=0 [A:inc=auto]]]] S:body
-
-for-int-print   F       [A:limit=10 [R:reg=i [A:init=0 [A:inc=auto]]]] S:body
-
-for-each        e       [/[a-zA-Z0-9]+/:regs="p"]
-                        ["%" /[^%]+%/:preprocessor="default-tokeniser-pre"]
-                        ["#" /[^#]+#/:tokeniser="default-tokeniser"]
-                        [("+" | "-") H...:options=""]
-                        (S:list S:body | "?" S:body S:list)
-
-for-each-print  E       (same syntax as for-each)
-
-read-reg        r $     R:register
-Evaluates to the current content of register.
-
-write-reg       @       R:register A:value
-Evaluates value and sets register to its result. Results in the empty string.
-
-unset-reg       (none)  R:register
-Deletes the value associated with register.
-
-num-add λ       +       A A
-num-sub λ       -       A A
-num-mul λ       *       A A
-num-div λ       /       A A
-num-mod λ       %       A A
-Perform the respective arithmetic operations on their arguments. Division and
-modulus fail if the RHS is zero.
-
-num-equ λ       xn=     A A
-num-neq λ       (none)  A A
-num-slt λ       <       A A
-num-sgt λ       >       A A
-num-leq λ       (none)  A A
-num-geq λ       (none)  A A
-Perform numeric comparisons on their arguments.
-
-logical-and λ   &       A A
-logical-or λ    |       A A
-logical-xor λ   xor     A A
-Logically combines the boolean values of the LHS and RHS. The RHS is only
-evaluated if necessary. Note that, in function form, this short-circuiting has
-no effect since all parameters are evaluated before the function is invoked.
-
-logical-not λ   !       A
-Results in the boolean negation of the result of its arguments.
-
-str-equ λ       =       A A
-str-slt λ       s<      A A
-str-sgt λ       s>      A A
-str-str λ       ss      A A
-Perform case-sensitive string comparisons on their arguments.
-
-str-ix          c       A:begin [A:end | "." A:length] S:string
-Results in the contents of the result of evaluating string, between begin
-(inclusive) and either end or (begin+length), whichever is specified
-(exclusive). If both end and length are omitted, end is set to
-(begin+1). Negative indices for begin are relative to the length of the string,
-and for end/(begin+length) to one plus the length of the string. Indices are
-clamped to the string boundaries, and end to begin.
-
-str-is          ~       H:type A:string
-Tests whether the string is of the class indicated by H (multiple characters
-indicate multiple characters which each mean the same thing):
-  l   Lowercase UNICODE         L (negated)
-  o   Lowercase ASCII           O (negated)
-  u   Uppercase UNICODE         U (negated)
-  v   Uppercase ASCII           V (negated)
-  a   Alphabetic UNICODE        A (negated)
-  b   Alphabetic ASCII          B (negated)
-  n   Alphanumeric UNICODE      N (negated)
-  m   Alphanumeric ASCII        M (negated)
-  \   ASCII Control Character   ~ (negated)
-  0   ASCII digit               9 (negated)
-  x   ASCII hexit               X (negated)
-  .p  UNICODE Punctuation       :P (negated)
-  ,q  ASCII Punctuation         ;Q (negated)
-  _s  UNICODE Whitespace        #S (negated)
-  g   UNICODE Graphical         G (negated)
-  h   ASCII Graphical           H (negated)
-  r   UNICODE Printing          R (negated)
-  t   ASCII Printing            T (negated)
-
-str-toupper λ   sU      A
-str-tolower λ   sL      A
-Transform the input string into upper or lowercase, according to the current
-locale. The length of the string is unchanged ("ß" does not become "ẞ" or
-"SS"). Turks beware!
-
-str-totitle λ   sT      A
-str-tosent  λ   sS      A
-str-tocamel λ   sC      A
-str-topascal λ  sP      A
-str-toscream λ  s!      A
-str-tocstyle λ  s_      A
-str-tocaspal λ  sE      A
-str-tolisp λ    sI      A
-str-tocobol λ   sX      A
-Performs "magic" case and convention conversion. These commands attempt to
-transform the input string into a string matching the given case and delimiter
-convention indicated:
-  title    This Is A Title
-  sent     This is a sentence
-  camel    thisIsCamelCase
-  pascal   ThisIsPascalCase
-  scream   THESE_ARE_SCREAMING_CAPS
-  cstyle   c_style_identifier
-  caspal   This_Is_Caspal_Style
-  lisp     i-am-lispy
-  cobol    I-HATE-MY-LIFE
-As with str-toupper and str-tolower, case conversions are performed according
-to the current locale, so if your locale is Turkish you probably want to run
-TglNG under some other locale (eg, "en_US.UTF-8") if not working with actual
-Turkish text.
-
-str-len λ       s#      A
-Results in the length of the result of its argument.
-
-default-tokeniser λ     default function syntax
-                        (token remainder <- remainder options)
-default-tokeniser-pre λ default function syntax
-                        (remainder options <- remainder options)
-
-list-escape λ           default function syntax
-                        (escaped-item <- item)
-
-list-append λ           (list <- list item)
-
-list-ix λ               (item <- list index)
-
-list-len λ              (length <- list)
-
-list-convert            ["%" /[^%]+/:preprocessor="default-tokeniser-pre" "%"]
-                        ["#" /[^#]+/:tokeniser="defauls-tokeniser" "#"]
-                        [("+" | "-") H...:options=""]
-                        S:input
-
-list-map λ              (list <- (output <- input) list)
-
-list-fold λ             (reduction <- (reduction <- accum item) list [init=""])
-
-list-filter λ           (list <- (accept? <- item) list)
-
-list-assign             H...:registers S:list
-
-list-zip λ              (zipped <- list-of-lists)
-
-list-flatten λ          (list <- list-of-lists)
-
-list-unzip λ            (list-of-lists <- list [stride=2])
-
-list-car λ              (car cdr <- list)
-
-list                    "(" A:item ["," A:item ["," ...]] ")"
-
-defun           (none)  /[^#]+#/:long-name
-                        [":" H:short-name = (none)]
-                        ["[" /[^\]]*/:outvars="" "]"]
-                        ["(" /[^\)]*/:invars="" ")"]
-                        A:body
-
-lambda          x\ λ    ["[" /[^\]]*/:outvars = "" "]"]
-                        ["(" /[^\)]*/:invars = "" ")"]
-                        A:body
-
-call            (none)  A:function <standard function syntax>
-
-let             (none)  /[^#]+/:name "#" "=" A:value ...:body
-
-set             (none)  /[^#]+/:name "#" "=" A:value
-
-meta            (none)  (none)
-Results in a string containing only the escape character.
-
-set-meta        (none)  H:escape
-Sets the escape character to the given one.
-
-bind            (none)  /[^#]+#/:name H:shortname
-Binds the command whose name is name (without the trailing hash) to the
-character specified by shortname.
-
-ensemble-new    (none)  /[^#]+#/:name
-Creates a new ensemble of the given name. An ensemble is a command which uses
-the character following it to determine another command to delegate to. It is,
-in essence, a secondary namespace for short commands. An ensemble is usable as
-a normal command, including via #bind# etc.
-
-ensemble-bind   (none)  /[^#]+#/:ensemble-name /[^#]+#/:command-name H:shortname
-Binds command-name to shortname within the command ensemble-name, which must be
-an ensemble (created by ensemble-new).
-
-long-mode       (none)  ...:body
-Sets the long-mode flag in the interpreter, and parses commands in Command mode
-(which becomes Long mode due to the flag) until parsing is stopped. The
-long-mode flag is then reset to what it was before the command was executed.
-
-short-mode      (none)  ...:body
-Like long-mode, but unsets the long-mode flag (thus body will be in normal
-Command mode).
-
-long-mode-cmd   (none)  /[a-zA-Z0-9_-]+/:name
-Reads characters (including its own character) into a command name. That
-command is then looked up and parsed, with the command character as the last
-character in name.
-
-FUNCTIONS
-
-Functions are certain commands which:
-+ Have no semantics based on their syntax;
-+ Have no internal state.
-
-These properties allow functions to be bound to various parameters at
-run-time. Some commands can only work with functions. All user-defined commands
-are functions and use the standard function syntax.
-
-A function's parameters are generally expressed as
-  (outputs <- inputs)
-
-A function's first output is the actual result of the command. Secondary
-outputs may be captured to registers or ignored.
-
-Standard function syntax:
-  [ "[" /[^\]]*/:outregs = "" "]" ] "(" (A:argument ["," A:argument [...]]) ")"
+----------------
+Most of the functionality one uses in TglNG is in the form of the builtin
+commands. Other than the _<<long-command>>_ command, no command has an
+intrinsic short name; the default short names are bound in the default
+configuration file. ``Short names'' which are more than one character long
+indicate ensemble sequences (see the _<<ensemble-new>>_ subsection); spaces
+separate multiple default short names.
+
+The ``command character'' indicates the character on which the command began
+parsing; for commands invoked by short names, this is the short name itself,
+for example.
+
+Commands which do not define functional arity are not functions. Commands which
+only define functional arity used the _<<Standard-Function-Syntax>>_.
+
+Unless otherwise noted, examples are in *command mode* with the *long mode*
+flag clear. Characters to the right are not part of the code, but indicate
+output of the commands to the left.
+
+[[BindDisclaimer,See: Notes Regarding Binding Commands]]
+Notes Regarding Binding Commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+For all command-modifying commands, the binding takes place at *parse-time*,
+which means it affects everything to the right, and nothing to the left. Most
+bind commands take no action at *run-time*.
+
+Fundamental
+~~~~~~~~~~~
+
+[[bind,bind]]
+bind
+^^^^
+Arguments::
+  * _<<STS>>_(`#`): _command-name_
+  * _<<CHR>>_: _short-name_
+Parsing Side-Effects::
+  Binds the command indicated by _command-name_ to _short-name_. If there was
+  already a command bound to _short-name_, it is replaced.
+Remarks:: <<BindDisclaimer>>
+Examples::
+----------------
+#bind#num-neq#\ \1 1 { } \1 2       1 0
+#bind#num-add## #1 1 { } #1 2       2 3
+----------------
+
+
+[[ensemble-bind,ensemble-bind]]
+ensemble-bind
+^^^^^^^^^^^^^
+Arguments::
+  * _<<STS>>_(`#`): _ensemble-name_
+  * _<<STS>>_(`#`): _command-name_
+  * _<<CHR>>_: _short-name_
+Parsing Side-Effects::
+  Binds the command indicated by _command-name_ to the given _short-name_
+  within the ensemble dictated by _ensemble-name_. The command _ensemble-name_
+  *must* be an ensemble created by _<<ensemble-new>>_.
+Remarks:: <<BindDisclaimer>>
+Examples::
+----------------
+#ensemble-bind#secondary-numeric-ops#num-neq#!
+xn! 1 2 { } xn! 1 1                                 1 0
+----------------
+
+[[ensemble-new,ensemble-new]]
+ensemble-new
+^^^^^^^^^^^^
+Arguments::
+  * _<<STS>>_(`#`): _ensemble-name_
+Parsing Side-Effects::
+  Creates a command with the long name _ensemble-name_, which is an empty
+  ensemble.
+Remarks::
+  An ensemble is a command which has a single _<<CHR>>_ argument, which it uses
+  to look up what command to run; it is essentially a secondary short-name
+  namespace. <<BindDisclaimer>>
+
+[[long-command,long-command]]
+long-command
+^^^^^^^^^^^^
+Short Name:: #
+Arguments::
+  * _<<STS>>_(`#`): _command-name_
+  * (Syntax specific to the command named by _command-name_)
+Side-Effects::
+  Executes the command whose long name is _command-name_. Before parsing that
+  command, the parsing offset is backed up so that the sentinel character (`#`)
+  is the command character for the subordinate command.
+Result::
+  The output of the command named by _command-name_.
+Remarks::
+  This command is used in short mode to execute commands which have no short
+  name. Its short name is intrinsic, and is assigned even before the defaults
+  file is parsed.
+Examples::
+----------------
+#self-insert#       Results in "#"
+#set-meta#~         Change the escape character to "~"
+----------------
+
+[[long-mode,long-mode]]
+long-mode
+^^^^^^^^^
+Parsing Side-Effects::
+  Sets the *long mode* flag in the interpreter, then parses commands in command
+  parsing mode until parsing stops. The *long mode* flag is then restored.
+Side-Effects::
+  The parsed command chain is executed.
+Result::
+  The result of executing the command chain.
+Remarks::
+  Using *long mode* makes the language significantly more verbose, but also
+  much more readable. It is intended for use by configuration and extension
+  scripts.
+
+[[long-mode-cmd,long-mode-cmd]]
+long-mode-cmd
+^^^^^^^^^^^^^
+Arguments::
+  * _command-name_: A string of alphanumeric, hyphen, and underscore
+    characters. This includes the command character.
+  * (Syntax specific to the command named by _command-name_)
+Side-Effects::
+  Executes the command named by _command-name_. If there is no command named
+  _command-name_, but _command-name_ is one character long and there is a
+  command that has _command-name_ as a short name, that command is used
+  instead.
+Result::
+  The result of executing the command named by _command-name_.
+Remarks::
+  Before parsing _command-name_, the parsing offset is backed up so that the
+  command will see the last character of _command-name_ as its command
+  character. This command is used in *long mode* to parse and look up command
+  names.
+
+[[no-op,no-op]]
+no-op
+^^^^^
+Arguments:: None
+Functional:: (1 <- 0)
+Result:: The empty string
+
+[[section-command,section-command]]
+section-command
+^^^^^^^^^^^^^^^
+Short Names:: ( [ {
+Arguments::
+  Treats the command character as a _<<SEC>>_.
+Side-Effects::
+  Evaluates the section.
+Result::
+  The full result of the section.
+Remarks::
+  This command is used for grouping and for changing the parsing mode. See
+  _<<close-paren>>_, _<<close-bracket>>_, and _<<close-brace>>_ for the
+  corresponding termination commands.
+
+[[close-brace,close-brace]]
+close-brace
+^^^^^^^^^^^
+Short Name:: }
+Parsing Side-Effects::
+  Terminates parsing due to close-brace.
+Remarks::
+  Since this would theoretically terminate verbatim parsing, but verbatim
+  parsing never executes commands, the main function of this command is to give
+  more readable error messages in cases of mismatched parentheses.
+
+[[close-bracket,close-bracket]]
+close-bracket
+^^^^^^^^^^^^^
+Short Name:: ]
+Parsing Side-Effects::
+  Terminates parsing due to close-bracket.
+Remarks::
+  Keep in mind that, since this is generally used to terminate literal mode,
+  you must prefix its short name with the escape character.
+
+[[close-paren,close-paren]]
+close-paren
+^^^^^^^^^^^
+Short Name:: )
+Parsing Side-Effects::
+  Terminates parsing due to close-paren.
+Remarks::
+  Used to terminate a parenthesis group.
+
+[[short-mode,short-mode]]
+short-mode
+^^^^^^^^^^
+Parsing Side-Effects::
+  Clears the *long mode* flag in the interpreter, then parses commands in
+  command parsing mode until parsing stops. The *long mode* flag is then
+  restored.
+Side-Effects::
+  The parsed command chain is executed.
+Result::
+  The result of executing the parsed command chain.
+
+[[self-insert,self-insert]]
+self-insert
+^^^^^^^^^^^
+Arguments::
+  Only the command character.
+Result::
+  A one-character string containing the command character.
+Remarks::
+  The self-insert command is only really useful internally to TglNG.
+
+Registers
+~~~~~~~~~
+[[read-reg,read-reg]]
+read-reg
+^^^^^^^^
+Short Names:: r $
+Arguments::
+  * _<<CHR>>_: _register_
+Result::
+  The contents of the register named by _register_.
+Remarks::
+  This command fails if _register_ refers to an undefined register.
+
+unset-reg
+^^^^^^^^^
+Arguments::
+  * _<<CHR>>_: _register_
+Side-Effects::
+  Sets the register named by _register_ to the undefined state. Nothing happens
+  if _register_ is already undefined.
+
+write-reg
+^^^^^^^^^
+Arguments::
+  * _<<CHR>>_: _register_
+  * _<<ART>>_: _value_
+Side-Effects::
+  Evaluates _value_ and writes its result to the register named by
+  _register_. If _register_ was undefined, it loses that condition.
+
+Mathematics
+~~~~~~~~~~~
+[[num-add,num-add]]
+num-add
+^^^^^^^
+Short Name:: +
+Arguments::
+  * _<<ART>>_: _addend1_
+  * _<<ART>>_: _addend2_
+Functional:: (1 <- 2)
+Result::
+  The numeric sum of the results of evaluating _addend1_ and _addend2_, their
+  results treated as __<<Number>>__s.
+
+[[num-sub,num-sub]]
+num-sub
+^^^^^^^
+Short Name:: -
+Arguments::
+  * _<<ART>>_: _minuend_
+  * _<<ART>>_: _subtrahend_
+Functional:: (1 <- 2)
+Result::
+  The numeric difference of evaluating _minuend_ and _subtrahend_, their
+  results treated as __<<Number>>__s.
+
+[[num-mul,num-mul]]
+num-mul
+^^^^^^^
+Short Name:: *
+Arguments::
+  * _<<ART>>_: _multiplicand1_
+  * _<<ART>>_: _multiplicand2_
+Functional:: (1 <- 2)
+Result::
+  The numeric product of the results of evaluating _multiplicand1_ and
+  _multiplicand2_, their results treated as __<<Number>>__s.
+
+[[num-div,num-div]]
+num-div
+^^^^^^^
+Short Name:: /
+Arguments::
+  * _<<ART>>_: _dividend_
+  * _<<ART>>_: _divisor_
+Functional:: (1 <- 2)
+Result::
+  The numeric integer division of the results of evaluating _dividend_ and
+  _divisor_, their results treated as __<<Number>>__s. It is an error if
+  _divisor_ is zero.
+Examples::
+----------------
+/ 10 2          5
+/ 3 2           1
+/ 2 3           0
+----------------
+
+[[num-mod,num-mod]]
+num-mod
+^^^^^^^
+Short Name:: %
+Arguments::
+  * _<<ART>>_: _dividend_
+  * _<<ART>>_: _divisor_
+Functional:: (1 <- 2)
+Result::
+  The numeric modulo (division remainder) of the results of evaluating
+  _dividend_ and _divisor_, their results treated as __<<Number>>__s. It is an
+  error if _divisor_ is zero.
+Remarks::
+  The behaviour of this command is exactly that of C++'s equivalent
+  operator. This means that it is defective for most applications where
+  negative __dividend__s are concerned.
+Examples::
+----------------
+% 10 2          0
+% 3 2           1
+% 2 3           2
+% -1 3          -1 (you'd want 2 for most applications)
+----------------
+
+[[num-equ,num-equ]]
+num-equ
+^^^^^^^
+Short Name:: xn=
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Result::
+  A _<<Boolean>>_ indicating whether the results of evaluating _lhs_ and _rhs_
+  are numerically equal (by converting them to __<<Number>>__s). This command,
+  unlike _<<str-equ>>_, correctly handles equal numbers with different string
+  representations, but only works with numbers.
+
+[[num-neq,num-neq]]
+num-neq
+^^^^^^^
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Result::
+  A _<<Boolean>>_ whose value is the negation of what _<<num-equ>>_ would have
+  returned; that is, numeric **in**equality.
+
+[[num-slt,num-slt]]
+num-slt
+^^^^^^^
+Short Name:: <
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Result::
+  A _<<Boolean>>_ indicating whether the _<<Number>>_ result of _lhs_ is
+  **s**trictly **l**ess **t**han the _<<Number>>_ result of _rhs_.
+
+[[num-sgt,num-sgt]]
+num-sgt
+^^^^^^^
+Short Name:: >
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Result::
+  A _<<Boolean>>_ indicating whether the _<<Number>>_ result of _lhs_ is
+  **s**trictly **g**reater **t**han the _<<Number>>_ result of _rhs_.
+
+[[num-leq,num-leq]]
+num-leq
+^^^^^^^
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Result::
+  A _<<Boolean>>_ indicating whether the _<<Number>>_ result of _lhs_ is
+  **l**ess than or **eq**ual to the _<<Number>>_ result of _rhs_.
+
+[[num-geq,num-geq]]
+num-geq
+^^^^^^^
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Result::
+  A _<<Boolean>>_ indicating whether the _<<Number>>_ result of _lhs_ is
+  **g**reater than or **eq**ual to the _<<Number>>_ result of _rhs_.
+
+Logic
+~~~~~
+[[logical-and,logical-and]]
+logical-and
+^^^^^^^^^^^
+Short Name:: &
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Side-Effects::
+  _rhs_ is only executed if necessary to produce the correct output.
+Result::
+  A _<<Boolean>>_ indicating whether both _lhs_ and _rhs_ evaluated as
+  true. _lhs_ is always evaluated; _rhs_ is only evaluated if _lhs_ returns
+  true.
+Remarks::
+  Since functions cannot control the evaluation of their arguments, this
+  command loses its short-circuiting behaviour when used as a function (see
+  examples below).
+Examples::
+----------------
+& 0 (/ 0 0)             0 (false, no error due to short-circuit)
+& 1 (/ 0 0)             Divide-by-zero error
+#call#{logical-and}
+  (0, (/ 0 0))          Divide-by-zero error (all arguments are
+                        evaluated before logical-and is called).
+----------------
+
+[[logical-or,logical-or]]
+logical-or
+^^^^^^^^^^
+Short Name:: |
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Side-Effects::
+  _rhs_ is only executed if necessary to produce the correct output.
+Result::
+  A _<<Boolean>>_ indicating whether _lhs_ or _rhs_ evaluated as true. _lhs_ is
+  always evaluated; _rhs_ is only evaluated if _lhs_ returns false.
+Remarks::
+  Since functions cannot control the evaluation of their arguments, this
+  command loses its short-circuiting behaviour when used as a function (see
+  examples below).
+Examples::
+----------------
+| 1 (/ 0 0)             1 (true, no error due to short-circuit)
+| 0 (/ 0 0)             Divide-by-zero error
+#call#{logical-or}
+  (1, (/ 0 0))          Divide-by-zero error (all arguments are
+                        evaluated before logical-or is called).
+----------------
+
+[[logical-xor,logical-xor]]
+logical-xor
+^^^^^^^^^^^
+Short Name:: xor
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Result::
+  A _<<Boolean>>_ indicating whether exactly one of _lhs_ and _rhs_ evaluated
+  as true. Since there is no way to short-circuit this evaluation, both _lhs_
+  and _rhs_ are always evaluated.
+
+[[logical-not,logical-not]]
+logical-not
+^^^^^^^^^^^
+Short Name:: !
+Arguments::
+  * _<<ART>>_: _sub_
+Functional:: (1 <- 1)
+Result::
+  A _<<Boolean>>_ indicating whether _sub_ evaluated to false.
+
+String Operations
+~~~~~~~~~~~~~~~~~
+[[str-equ,str-equ]]
+str-equ
+^^^^^^^
+Short Name:: =
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Result::
+  A _<<Boolean>>_ indicating whether the string results of _lhs_ and _rhs_ are
+  equal, case sensitive.
+
+[[str-slt,str-slt]]
+str-slt
+^^^^^^^
+Short Name:: s<
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Result::
+  A _<<Boolean>>_ indicating whether the string result of _lhs_ is **s**trictly
+  **l**ess **t**han that of _rhs_, case-sensitive (ie, by Unicode code-point).
+
+[[str-sgt,str-sgt]]
+str-sgt
+^^^^^^^
+Short Name:: s>
+Arguments::
+  * _<<ART>>_: _lhs_
+  * _<<ART>>_: _rhs_
+Functional:: (1 <- 2)
+Result::
+  A _<<Boolean>>_ indicating whether the string result of _lhs_ is **s**trictly
+  **g**reater **t**han that of _rhs_, case-sensitive (ie, by Unicode
+  code-point).
+
+[[str-str,str-str]]
+str-str
+^^^^^^^
+Short Name:: ss
+Arguments::
+  * _<<ART>>_: _needle_
+  * _<<ART>>_: _haystack_
+Functional:: (1 <- 2)
+Result::
+  If _needle_ exists within _haystack_, return the zero-based positive index at
+  which _needle_ begins in _haystack_. Otherwise, return the empty string.
+
+[[str-ix,str-ix]]
+str-ix
+^^^^^^
+Short Name:: c
+Arguments::
+  * _<<ART>>_: _begin_
+  * Optionally, one of
+    ** _<<ART>>_: _end_
+    ** ``.'' _<<ART>>_: _length_
+  * _<<SEC>>_: _string_
+Result::
+  The contents of _string_ starting at _begin_, inclusive, and ending at _end_
+  or (_length_+1), exclusive. If neither _end_ nor _length_ is specified, _end_
+  defaults to (_begin_+1). If _begin_ is negative, the length of _string_ is
+  added to it; if _end_ is negative, the length of _string_ *plus one* is added
+  to it (effectively making negative end indexing inclusive). The indices are
+  silently clamped to valid ranges.
+
+[[str-is,str-is]]
+str-is
+^^^^^^
+Short Name:: ~
+Arguments::
+  * _<<CHR>>_: _class_
+  * _<<ART>>_: _string_
+Result::
+  Returns whether _string_ is a non-empty string consisting only of characters
+  which match _class_. See the _<<character-class-table>>_ for a complete list
+  of character classes. Most character classes exist for both Unicode and
+  ASCII, and may be negated; note that negated ASCII classes include *all*
+  non-ASCII characters.
+
+[[character-class-table,Table of Character Classes]]
+.Character Classes
+[width="80%",options="header"]
+|==============================================================================
+|               | Unicode       | ASCII | Unicode Negated       | ASCII Negated
+| Alphabetic    | a             | b     | A                     | B
+| Alphanumeric  | n             | m     | N                     | M
+| Control       |               | \     |                       | ~
+| Digit         |               | 0     |                       | 9
+| Graphical     | g             | h     | G                     | H
+| Hex Digit     |               | x     |                       | X
+| Lowercase     | l             | o     | L                     | O
+| Printing      | r             | t     | R                     | T
+| Punctuation   | p .           | q ,   | P :                   | Q ;
+| Uppercase     | u             | v     | U                     | V
+| Whitespace    | s _           |       | S #                   |
+|==============================================================================
+
+[[str-len,str-len]]
+str-len
+^^^^^^^
+Short Name:: s#
+Arguments::
+  * _<<ART>>_: _string_
+Functional::
+  (1 <- 1)
+Result::
+  The length of the string result of _string_.
+
+[[magic-case-conversion,Magic Case/Convention Conversion]]
+str-to...
+^^^^^^^^^
+Short Name:: Varies (see below)
+Arguments::
+  * _<<ART>>_: _string_
+Functional::
+  (1 <- 1)
+Result::
+  _string_ in the new case convention particular to the command. See the
+  _<<magic-case-conversion-table>>_ for a list of commands, their short names,
+  and the conventions they convert to.
+Remarks::
+  This family of commands use heuristics to convert from most case and
+  delimiter conventions to others (other than _str-toupper_ and _str-tolower_
+  which just do straight case changing). All of them change case *based on the
+  current locale*. This means that certain languages may give problems for use
+  in programming; for example, if your locale is set to Turkish, uppercasing
+  ``string'' yields ``STRİNG'' instead of ``STRING'', and lowercasing
+  ``STRING'' similarly yields ``strıng'' instead of ``string''. Additionally,
+  case conversion itself will not change string length; eg, even in the German
+  locale, ``Straße'' uppercases to ``STRAßE'' and not ``STRASSE''.
+
+[[magic-case-conversion-table,Table of Case/Convention Conversions]]
+.``Magic'' Case/Convention Conversions
+[width="100%",options="header"]
+|==============================================================================
+| Long Name     | Short Name    | Example
+| str-tocamel   | sC            | thisIsCamelCase
+| str-tocaspal  | sE            | This_Is_Caspal_Style
+| str-tocobol   | sX            | I-HATE-MY-LIFE
+| str-tocstyle  | s_            | c_style_identifier
+| str-tolisp    | sI            | lisp-is-for-processing-lists
+| str-tolower   | sL            | all lowercase
+| str-topascal  | sP            | ThisIsPascalCase
+| str-toscream  | s!            | THESE_ARE_SCREAMING_CAPS
+| str-tosent    | sS            | This is a sentence
+| str-totitle   | sT            | This Is A Title
+| str-toupper   | sU            | ALL UPPERCASE
+|===============================================================================
+
+Control Structures
+~~~~~~~~~~~~~~~~~~
+[[false-coalesce,false-coalesce]]
+false-coalesce
+^^^^^^^^^^^^^^
+Short Name:: I
+Arguments::
+  * _<<SEC>>_: _test_
+  * _<<SEC>>_: _else_
+Side-Effects::
+  _else_ is evaluated only if _test_ results in false.
+Result::
+  If _test_ evaluates to a true _<<Boolean>>_, use its result. Otherwise, use
+  the result of evaluating _else_.
+
+[[for-each,for-each]]
+for-each
+^^^^^^^^
+Short Name:: e
+Arguments::
+  * Optional: _<<ANS>>_: _registers_
+  * Optional: `%` _<<STS>>_(%): _preprocessor_ (list options <- list options)
+  * Optional: `#` _<<STS>>_(`#`): _tokeniser_ (token list <- list options)
+  * Optional: (``+'' or ``-'') _<<NSS>>_: _options_
+  * One of:
+    ** _<<SEC>>_: _list_, _<<SEC>>_: body
+    ** ``?'' _<<SEC>>_: _body_, _<<SEC>>_: _list_
+Side-Effects::
+  Executes _list_ for the initial list. Depending on _preprocessor_ and
+  _tokeniser_, various parts of _options_ may lead to execution of user
+  commands. Passes _list_ through _preprocessor_. Until _list_ is empty, gets
+  one or more tokens from _tokeniser_ (corresponding to the length of
+  _registers_, which defaults to ``p'' if unspecified) and assigns each one to
+  a consecutive member of _registers_, then executes _body_.
+Result::
+  The results of each execution of _body_ are concatenated and returned.
+Remarks::
+  _preprocessor_ defaults to _<<default-tokeniser-pre>>_ and _tokeniser_ to
+  _<<default-tokeniser>>_. The # before _tokeniser_ is not affected by *long
+  mode*. The presence of _options_ precludes the use of the ``?'' syntax. The
+  ``+'' or ``-'' before _options_ is implicitly prepended to that string.
+Example::
+----------------
+ekv{foo bar baz quux}[`rk -> `rv
+`]
+
+foo -> bar
+baz -> quux
+----------------
+
+[[for-each-print,for-each-print]]
+for-each-print
+^^^^^^^^^^^^^^
+Short Name:: E
+Arguments:: Same as _<<for-each>>_.
+Side-Effects:: Same as _<<for-each>>_.
+Result::
+  The same as _<<for-each>>_, except that the value of the most recently
+  removed token (*note singular*) is implicitly placed between the result of
+  the left part of _body_ and the right part of _body_.
+Example::
+----------------
+[(`E{foo bar baz}|)
+]
+
+(foo)
+(bar)
+(baz)
+----------------
+
+[[for-integer,for-integer]]
+for-integer
+^^^^^^^^^^^
+Short Name:: f
+Arguments::
+  * The following are optional, but to specify a later one, all that come
+  before must be given.
+    ** _<<ART>>_: _limit_, defauls to 10
+    ** _<<CHR>>_: _register_, defaults to ``i''
+    ** _<<ART>>_: _init_, defaults to 0
+    ** _<<ART>>_: _increment_, defaults to +1 or -1 automatically
+  * _<<SEC>>_: _body_
+Side-Effects::
+  Evaluates _limit_, _init_, and _increment_, in that order. Copies _init_ into
+  _register_. Until the value of _register_ has passed _limit_ in the direction
+  determined by _increment_, executes _body_, then adds _increment_ to
+  _register_.
+Result::
+  The results of each execution of _body_, concatenated.
+Remarks::
+  _increment_, if unspecified, is set to +1 if (_limit_ >= _init_), or -1
+  otherwise. Altering _register_ within _body_ has the expected
+  effects. _limit_ and _increment_ are *not* reëvaluated during execution of
+  the loop.
+
+[[for-int-print,for-int-print]]
+for-int-print
+^^^^^^^^^^^^^
+Short Name:: F
+Arguments:: Same as _<<for-integer>>_.
+Side-Effects:: Same as _<<for-integer>>_.
+Result::
+  Same as _<<for-integer>>_, except that the value of _register_ between the
+  execution of the left part of _body_ and the right part of _body_ is appended
+  therebetween.
+Example::
+----------------
+[switch (str[i]) {
+`[case '`F|':
+`]  //do something
+}`]
+
+switch (str[i]) {
+case '0':
+case '1':
+case '2':
+case '3':
+case '4':
+case '5':
+case '6':
+case '7':
+case '8':
+case '9':
+  //do something
+}
+----------------
+
+[[if,if]]
+if
+^^
+Short Name:: i
+Arguments::
+  * _<<SEC>>_: _condition_
+  * _<<SEC>>_: _then_
+  * Optional _<<SEC>>_: _else_
+Side-Effects::
+  Evaluates _condition_. If it results in a true _<<Boolean>>_, evaluates
+  _then_; otherwise, it evaluates _else_ (which defaults to _<<no-op>>_).
+Result::
+  If _condition_ was true, the result of _then_; otherwise, the result of
+  _else_.
+
+Tokenisation
+~~~~~~~~~~~~
+Tokenisation (ie, splitting a string into separate parts) is handled by two
+functions: a preprocessor and the tokeniser proper.
+
+The preprocessor is a function with the signature (list options <- string
+options). The input _string_ is the raw string to be processed, and _options_
+is an arbitrary, user-supplied string (which usually begins with ``+'' or
+``-''). The preprocessor's job is to change _string_ into a format acceptable
+to the expected tokeniser, and possibly to change _options_. (The preprocessor
+may also have the signature (list <- string), which is equivalent to passing
+_options_ unmodified).
+
+The tokeniser is a function with the signature (token remainder <- list
+options). _options_ is the output of the same name from the preprocessor. The
+_token_ output is the next token extracted from _list_, and _remainder_ is
+whatever remains of _list_. The tokeniser is free to do whatever it wants with
+the list, with one restriction: The list is considered empty when it is the
+empty string. (This applies to the preprocessor as well.)
+
+The default tokeniser system is adaquate for the vast majority of tasks.
+
+[[default-tokeniser,default-tokeniser]]
+default-tokeniser
+^^^^^^^^^^^^^^^^^
+Functional:: (token remainder <- list options)
+Result::
+  The next token in _list_ and what remains of _list_, after processing as
+  described in _options_.
+
+The _options_ string is composed of a list of parameters. Each paramater may
+have a leading ``+'' to turn it on, or ``-'' to turn it off. If none is found,
+``+'' is assumed. There are a few pseudo-parameters which are not sensitive to
+the leading sign, and just set predefined options. `S` is equivalent to
+`+D+s-l-n+c`. `L` is equivalent to `+D-s+l-n+c`. `0` is equivalent to
+`_+n`. `D` clears all custom delimiters. `!` resets all parameters to their
+defaults, and `_` clears all parameters (sets them to false or empty).
+
+If a `#` is encountered where a parameter was expected, characters up to the
+next `#` are read (this is not affected by *long mode*), and that string,
+prepended with ``tokfmt-'', is used to look up a (1 <- 0) function of that
+name. The result of the function is parsed for more parameters.
+
+The available parameters are:
+
+spaces-are-delims::
+  Defaults to true. If set, any whitespace character is considered a
+  delimiter. This is controlled with the `s` parameter.
+lines-are-delims::
+  Defaults to false. If set, any line feed, carraige return, or carraige return
+  followed by a line feed is considered a single delimiter. Even if this is
+  false, newlines will be delimiters if spaces-are-delims is set. This is
+  controlled with the `l` parameter.
+nuls-are-delims::
+  Defaults to false. If set, the NUL character (U+0000) is considered a
+  delimiter. This is controlled with the `n` parameter.
+additional-delimiters::
+  Defaults to empty. Any additional characters specified here are considered
+  delimiters. Characters can be added and removed to this list by specifying
+  `+d` or `-d` followed by that character.
+coalesce-delimiters::
+  Defaults to true. If set, adjacent delimiters are considered as if there were
+  only one. The delimiters do not have to match. Additionally, this will cause
+  the preprocessor to skip all leading delimiters. This is controlled with the
+  `c` parameter.
+parentheses::
+  Defauls to the parings `() [] {}`. If the left half of a pairing is
+  encountered, delimiters will have no effect until the string is balanced with
+  respect to both parts of the pair. If the right is the same as the left, only
+  the right character is considered; this allows quote characters to be used
+  here as well. Pairs can be added to and removed from this list with `+p` and
+  `-p` followed by the two characters to balance. If the left part already
+  exists, it is replaced. Deleting a character from this list implicitly
+  deletes any pair of the same left-side from trim-parentheses.
+trim-parentheses::
+  Defaults to the pairings `() [] {}`. If an extracted token is surrounded by a
+  single balanced pair from this list, the first and last characters are
+  trimmed. Pairs can be added to and removed from this list with `+t` or
+  `-t` followed by the two characters to trim. Adding to this list implicitly
+  adds it to the parentheses list.
+escape-sequences::
+  Defaults to true. If set, C-style escape sequences will be processed and
+  substituted. See the _<<escape-sequences-table>>_ for supported
+  sequences. Note that this will also allow backslashes to suppress delimiters
+  and parenthesis counting. This is controlled with the `e` parameter.
+
+[[escape-sequences-table,Table of Escape Sequences]]
+.EscapeSequences
+[width="100%",options="header"]
+|==============================================================================
+| Sequence      | Interpretation
+| `\\`          | `\`
+| `\a`          | ASCII BEL
+| `\b`          | ASCII BS (Backspace)
+| `\e`          | ASCII ESC
+| `\f`          | ASCII FF (Form Feed)
+| `\n`          | ASCII LF (Line Feed)
+| `\r`          | ASCII CR (Carraige Return)
+| `\t`          | ASCII HT (Horizontal Tabulator)
+| `\v`          | ASCII VT (Vertical Tabulator)
+| `\`[0-7]+     | Unicode codepoint specified by the given octal sequence
+| `\x##`        | Unicode codepoint specified by hexadecimal `##`
+| `\X##`        | Same as `\x##`
+| `\u####`      | Unicode codepoint specified by hexadecimal `####`
+| `\U########`  | Unicode codepoint specified by hexadecimal `########`
+| `\x{...}`     | Unicode codepiont specified by hexadecimal `...`
+| `\X{...}`     | Same as `\x{...}`
+| `\u{...}`     | Same as `\x{...}`
+| `\U{...}`     | Same as `\x{...}`
+| Anything else | The character after the backslash
+|==============================================================================
+
+[[default-tokeniser-pre,default-tokeniser-pre]]
+default-tokeniser-pre
+^^^^^^^^^^^^^^^^^^^^^
+Functional:: (list <- list options)
+Result::
+  If _options_ sets the coalesce-delimiters parameter, all leading delimiters
+  in _list_ are stripped before returning. Otherwise, _list_ is returned
+  verbatim.
+
+Lists
+~~~~~
+A _list_ is a string representation of an ordered collection of items such that
+running the default tokeniser over it with the default parameters will return
+each successive item in the list. Thus, a list can be iterated over with an
+unmodified _<<for-each>>_ loop.
+
+Since list manipulations are common in scripting code, TglNG provides a family
+of commands (mostly functions) for performing these modifications. Some of
+these operations incorporate functional programming operations.
+
+[[list,list]]
+list
+^^^^
+Arguments::
+  An arbitrary number of _<<ART>>_ arguments, separated by commas and enclosed
+  in parentheses.
+Result::
+  A list whose elements are the results of the given arguments.
+Example::
+----------------
+#list#(F{ }, F4{(})
+
+(0 1 2 3 4 5 6 7 8 9 ) [0(1(2(3]
+----------------
+////////////////
+Making emacs happy
+))])
+////////////////
+
+[[list-assign,list-assign]]
+list-assign
+^^^^^^^^^^^
+Arguments::
+  * _<<NSS>>_: _registers_
+  * _<<SEC>>_: _list_
+Side-Effects::
+  For each register in _registers_, take an element from the front of _list_
+  and assign it to that register. If _list_ has more elements than _registers_
+  does characters, do not modify the excess registers.
+Result::
+  A list of items which were not assigned to any register (because _list_ had
+  more elements than _registers_ did characters).
+
+[[list-append,list-append]]
+list-append
+^^^^^^^^^^^
+Functional:: (list <- list item)
+Result::
+  The input _list_ with _item_ appended, after being escaped (via
+  _<<list-escape>>_).
+Remarks::
+  The input _item_ is to be unescaped; the escaping is done implicitly.
+
+[[list-car,list-car]]
+list-car
+^^^^^^^^
+Functional:: (car cdr <- list)
+Result:: _car_ is the first element in _list_; _cdr_ is _list_ minus the first
+element. The function fails if _list_ is empty.
+
+[[list-convert,list-convert]]
+list-convert
+^^^^^^^^^^^^
+Arguments::
+  * Optional: `%` _<<STS>>_(`%`): _preprocessor_
+  * Optional: `#` _<<STS>>_(`#`): _tokeniser_
+  * Optional: (`+` or `-`) _<<NSS>>_: _options_
+  * _<<SEC>>_: _list_
+Side-Effects::
+  The _preprocessor_, _tokeniser_, and _options_ may have side-effects as
+  described in the _<<for-each>>_ command.
+Result::
+  The result of evaluating _list_ is tokenised using the given tokenisation
+  system (treating _preprocessor_, _tokeniser_, and _options_ the exact same
+  way as the _<<for-each>>_ command does) is converted into a standard list.
+Example::
+----------------
+#list-convert#+#csv#{foo,bar,with spaces,"with,comma"}
+
+foo bar (with spaces) with,comma
+----------------
+
+[[list-filter,list-filter]]
+list-filter
+^^^^^^^^^^^
+Functional:: (list <- fun:(accept <- item) list)
+Side-Effects::
+  Calls _fun_ for each element in _list_.
+Result::
+  A list built from all elements from _list_ for which _fun_ returned a true
+  _<<Boolean>>_.
+Example:: (See also _<<lambda>>_)
+----------------
+#list-filter#(λ(n) >$n3, `F{ })
+
+4 5 6 7 8 9
+----------------
+
+[[list-flatten,list-flatten]]
+list-flatten
+^^^^^^^^^^^^
+Functional:: (list <- list-of-lists)
+Result::
+  A list which is the result of concatenating every element in _list-of-lists_,
+  on the assumption that every element in _list-of-lists_ is a valid list.
+
+[[list-fold,list-fold]]
+list-fold
+^^^^^^^^^
+Functional:: (reduction <- fun:(reduction <- accum item) list initaccum)
+Side-Effects::
+  Starting with an accumulator _initaccum_, calls _fun_ with the current
+  accumulator and each element in _list_, using the result of _fun_ as the
+  accumulator for the next call.
+Result::
+  The result of the last invocation of _fun_, or _initaccum_ if _list_ is
+  empty.
+Remarks::
+  The _initaccum_ argument can be omitted and it will default to the empty
+  string.
+Example::
+----------------
+#list-fold#({num-add}, {1 2 3 4 5}, 0)          15
+----------------
+
+[[list-escape,list-escape]]
+list-escape
+^^^^^^^^^^^
+Functional:: (escaped-item <- item)
+Result::
+  The value of _item_ with possible additions and/or modifications such that it
+  can be appended to a list with a space and cause that list to have _item_ as
+  its new final element.
+
+[[list-ix,list-ix]]
+list-ix
+^^^^^^^
+Functional:: (item <- list index)
+Result::
+  The element within _list_ at the given zero-based _index_. If _index_ is
+  negative, the length of _list_ is added to _index_ first.
+Remarks::
+  This function requires a linear scan of the list. If _index_ is non-negative,
+  this function performs (_index_+1) calls to the tokeniser; if it is negative,
+  an additional (list-len(_list)) operations are required. Therefore, iterating
+  over a list via its indices is an O(n²) operation.
+
+[[list-len,list-len]]
+list-len
+^^^^^^^^
+Functional:: (length <- list)
+Result:: The number of elements in _list_.
+Remarks:: Determining a list's length requires parsing the entire string; thus,
+this is an O(n) operation.
+
+[[list-map,list-map]]
+list-map
+^^^^^^^^
+Functional:: (list <- fun:(output <- input) list)
+Side-Effects::
+  Calls _fun_ for each element in _list_.
+Result::
+  A new list built by using the result of calling _fun_ on each element in
+  _list_.
+Example::
+----------------
+#list-map#({str-tocamel}, {{hello world} {hello-world} {HelloWorld}})
+
+helloWorld helloWorld helloWorld
+----------------
+
+[[list-unzip,list-unzip]]
+list-unzip
+^^^^^^^^^^
+Functional:: (list-of-lists <- list stride)
+Result::
+  A list of lists resulting from distributing items from _list_ into _stride_
+  separate lists.
+Remarks::
+  A _stride_ specified as the empty string means 2.
+Example::
+----------------
+#list-unzip#(F16{ }, 3)
+
+(0 3 6 9 12 15) (1 4 7 10 13) (2 5 8 11 14)
+----------------
+
+[[list-zip,list-zip]]
+list-zip
+^^^^^^^^
+Functional:: (list <- list-of-lists)
+Result::
+  A list which is the result of interleaving the elements of each list within
+  _list-of-lists_.
+Example::
+----------------
+#list-zip#({{1 2 3 4} {5 6 7} {8 9 10 11 12}})
+
+1 5 8 2 6 9 3 7 10 4 11 12
+----------------
+
+Functional
+~~~~~~~~~~
+TglNG provides basic facilities for user-defined functions, as well as
+non-closing ML-style _<<let>>_ ``variables''.
+
+[[call,call]]
+call
+^^^^
+Arguments::
+  * _<<ART>>_: _fun_
+  * _<<Standard-Function-Syntax>>_
+Side-Effects::
+  Invokes _fun_ with the given arguments and output captures.
+Result::
+  The primary result of executing _fun_.
+
+[[defun,defun]]
+Arguments::
+  * _<<STS>>_(`#`): _long-name_
+  * Optional: `:` _<<CHR>>_: _short-name_
+  * Optional: `[` _<<STS>>_(`]`): _outvars_
+  * Optional: `(` _<<STS>>_(`)`): _invars_
+  * _<<ART>>_: _body_
+Parsing Side-Effects::
+  Defines a function named _long-name_, which must not yet exist. If
+  _short-name_ is given, it is bound as if via _<<bind>>_.
+
+_defun_ defines a user function at *global scope*. When the function begins
+execution, all registers are saved. Each argument given is then written into
+each successive element of _invars_, using the empty string if not
+given. _body_ is then executed for the primary result. If _outvars_ is defined,
+the value of each register listed within is used as a secondary result. The
+values of *all* registers from before execution of the function is then
+restored.
+
+[[lambda,lambda]]
+lambda
+^^^^^^
+Short Names:: λ x\
+Arguments::
+  * Optional: `[` _<<STS>>_(`]`): _outvars_
+  * Optional: `(` _<<STS>>_(`)`): _invars_
+  * _<<ART>>_: _body_
+Parsing Side-Effects::
+  Creates a function with a unique, otherwise non-accessible name.
+Result::
+  The name of the function created.
+
+_lambda_ functions the same way as _<<defun>>_, except that the name is
+auto-generated, and it results in something (namely the name of the generated
+function).
+
+[[let,let]]
+let
+^^^
+Arguments::
+  * _<<STS>>_(`#`): _name_
+  * The character `=`
+  * _<<ART>>_: _value_
+  * All of the following code, parsed in command mode: _body_
+Parsing Side-Effects::
+  Within _body_, _name_ is set to a non-bindable pseudo-command which stores an
+  arbitrary string.
+Side-Effects::
+  Preserves the value of the variable defined, then evaluates _value_ and sets
+  the variable to its result. Executes _body_. Restores the variable to its old
+  value.
+Result::
+  The result of executing _body_.
+
+_let_ is used to create crude ML-style `let` bindings. Access to a given
+variable, and identity of that variable, is *lexically scoped*. However, the
+value that a given variable has is *dynamically scoped*.
+
+This discrepency is caused by the way _let_ works. At parse-time, _let_
+*temporarily* creates a command named _name_, replacing whatever was at that
+name, parses _body_, then restores _name_. Thus, lexical scoping for variable
+access and identity. At run-time, _let_ preserves the old value of the
+variable before setting it and executing _body_, and then restores it
+afterward.
+
+This mostly has the intended effect, except that TglNG _does not have
+closures_. Thus, the following code results in the empty string instead of a
+greeting:
+----------------
+#long-mode#
+defun greet (g) (
+  let greeting = $g
+  λ greeting)
+
+call greet({Hello, world!})()
+----------------
+
+When `greet` is executed, the _let_ command stores the old value of `greeting`,
+then writes ``Hello, world!'' to it. It then returns a _<<lambda>>_ which
+should return the value of `greeting`. This is legal, since `greeting` is a
+defined command here at parse time.
+
+However, the __let__'s _body_ is now complete, so _let_ restores the old value
+of `greeting`, which was... the empty string. Thus, when the caller calls the
+returned _<<lambda>>_, it results in the *current* value of `greeting`, which
+is now the empty string.
+
+Keep in mind that the dynamic scoping is by identity, not by name. The
+following code results in ``lexical'':
+----------------
+#long-mode#
+defun inner (l) (
+  let var = {dynamic}
+  call $l())
+
+defun outer () (
+  let var = {lexical}
+  inner(λ var))
+
+outer()
+----------------
+
+This works because the two instances of `var` are *different variables* which
+just happen to have the same name.
+
+[[set,set]]
+set
+^^^
+Arguments::
+  * _<<STS>>_(`#`): _name_
+  * The character `=`
+  * _<<ART>>_: _value_
+Side-Effects::
+  Alters the variable (created with _<<let>>_) which can be accessed by _name_
+  in the current scope to have a value equal to the result of evaluating
+  _value_.
+
+FILES
+-----
+TglNG currently does not use any files. It will someday.
+
+ENVIRONMENT
+-----------
+TglNG currently does not use the environment. Someday it will.
+
+
+EXIT STATUS
+-----------
+tglng exits with code 0 if no errors occurred, or non-zero
+otherwise. Eventually, the non-zero error codes will be meaningful to the
+caller.
