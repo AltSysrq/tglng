@@ -151,4 +151,38 @@ namespace tglng {
   };
 
   static GlobalBinding<SetMetaParser> _setMetaParser(L"set-meta");
+
+  class SetLocaleParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp,
+                              Command*& out,
+                              const wstring& text,
+                              unsigned& offset) {
+      wstring wlocaleName;
+      unsigned nameOffset;
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(), a.to(wlocaleName, L'#') >> nameOffset])
+        return ParseError;
+
+      //All known non-EBCDIC systems use ASCII-only locale names, so transcode
+      //the easy way
+      string nlocaleName;
+      nlocaleName.resize(wlocaleName.size());
+      for (unsigned i = 0; i < wlocaleName.size(); ++i)
+        nlocaleName[i] = (char)wlocaleName[i];
+
+      setlocale(LC_ALL, nlocaleName.c_str());
+      setlocale(LC_NUMERIC, "C");
+      try {
+        locale::global(locale(nlocaleName.c_str()));
+      } catch (...) {
+        interp.error(wstring(L"Failed to set locale to: ") + wlocaleName,
+                     text, nameOffset);
+        return ParseError;
+      }
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<SetLocaleParser> _setLocaleParser(L"set-locale");
 }

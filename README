@@ -457,6 +457,35 @@ Parsing Side-Effects::
 Remarks::
   Used to terminate a parenthesis group.
 
+[[set-locale,set-locale]]
+set-locale
+^^^^^^^^^^
+Arguments::
+  * _<<STS>>_(`#`): locale
+Parsing Side-Effects::
+  *Immediately* sets the global locale to _locale_. This may affect
+  classification of characters.
+Remarks::
+  This command is intended to be used in user configuration files to alter what
+  TglNG uses for their locale. By default, TglNG uses the default system
+  locale, whatever that is and however it is determined on the platform. In
+  some cases, this may not be appropriated; for example, Turkish capitalisation
+  rules will hinder programming. Using the ``C'' locale may have unexpected
+  effects; it is not recommended.
+Example::
+----------------
+#long-mode#
+set-locale tr_TR.UTF-8
+str-toupper {string
+}
+set-locale en_US.UTF-8
+str-toupper {string
+}
+
+STRİNG
+STRING
+----------------
+
 [[short-mode,short-mode]]
 short-mode
 ^^^^^^^^^^
