@@ -41,7 +41,7 @@ namespace tglng {
 
     out->clear();
 
-    locale theLocale("");
+    locale theLocale;
 
     //Transcode in[0] to a narrow string
     typedef codecvt<wchar_t, char, mbstate_t> converter_t;
@@ -108,7 +108,7 @@ namespace tglng {
    */
   static bool wstrtofn(vector<char>& dst, const wstring& src) {
     typedef codecvt<wchar_t, char, mbstate_t> converter_t;
-    locale theLocale("");
+    locale theLocale;
     const converter_t& converter =
       use_facet<converter_t>(theLocale);
 
