@@ -16,7 +16,7 @@ AC_PROG_CXX
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h unistd.h glob.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
@@ -29,7 +29,7 @@ dnl AC_FUNC_MALLOC
 dnl AC_FUNC_REALLOC
 AC_FUNC_FORK
 AC_TYPE_PID_T
-AC_CHECK_FUNCS([dup2 memmove memset strerror mkstemp])
+AC_CHECK_FUNCS([dup2 memmove memset strerror mkstemp glob])
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT

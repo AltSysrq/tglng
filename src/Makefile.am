@@ -20,4 +20,5 @@ tglng_SOURCES = \
  cmd/default_tokeniser.cxx \
  cmd/defun.cxx \
  cmd/list.cxx \
- cmd/variable.cxx
+ cmd/variable.cxx \
+ cmd/fs.cxx

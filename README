@@ -1490,6 +1490,68 @@ Side-Effects::
   in the current scope to have a value equal to the result of evaluating
   _value_.
 
+Filesystem Operations
+~~~~~~~~~~~~~~~~~~~~~
+TglNG provides a number of basic filesystem commands. Commands which operate on
+file contents come in two versions: Textual and binary. Textual file commands
+perform wide character encoding/decoding according to the current locale, and
+additionally use ``text'' mode when opening the file, so `\n` gets converted to
+`\r\n` on Windows. Binary file commands work on raw bytes: The file is opened
+in ``binary'' mode; reading returns ``characters'' between U+0000 and U+00FF,
+and writing only uses the least significant byte of each character.
+
+[[append,append]]
+append
+^^^^^^
+Functional:: (success <- filename contents)
+Side-Effects:: Opens _filename_ in text-append mode, and writes _contents_ to
+  it.
+Result::
+  A _<<Boolean>>_ indicating whether the command succeeded.
+
+[[append-binary,append-binary]]
+append-binary
+^^^^^^^^^^^^^
+Like _<<append>>_, but in binary mode.
+
+[[ls,ls]]
+ls
+^^
+Functional:: (list <- glob)
+Result::
+  A list of filenames which match _glob_ (as in `glob(3)` on *NIX).
+Remarks::
+  This command may not be available on all platforms.
+
+[[read,read]]
+read
+^^^^
+Functional:: (contents success <- filename)
+Result::
+  The *entire* contents of the file named by _filename_, in text mode. If
+  _filename_ cannot be read, _contents_ is an empty string. _success_ is set to
+  a _<<Boolean>>_ indicating whether the command succeeded.
+
+[[read-binary,read-binary]]
+read-binary
+^^^^^^^^^^^
+Like _<<read>>_, but in binary mode.
+
+[[write,write]]
+write
+^^^^^
+Functional:: (success <- filename contents)
+Side-Effects::
+  Truncates the file named by _filename_ and writes _contents_ to the file in
+  text mode.
+Result::
+  A _<<Boolean>>_ indicating whether the command succeeded.
+
+[[write-binary,write-binary]]
+write-binary
+^^^^^^^^^^^^
+Like _<<write>>_, but in binary mode.
+
 FILES
 -----
 TglNG currently does not use any files. It will someday.
