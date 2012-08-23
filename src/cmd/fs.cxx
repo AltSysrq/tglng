@@ -154,7 +154,6 @@ namespace tglng {
       return false;
     Ifstream input(&fname[0], Text? ios::in : ios::in | ios::binary);
     if (!input) {
-      cerr << strerror(errno) << endl;
       out[0].clear();
       out[1] = L"0";
       return true;
@@ -178,4 +177,55 @@ namespace tglng {
   static GlobalBinding<TFunctionParser<
                          2,1,fs_read<ifstream, string, false> > >
   _readBinary(L"read-binary");
+
+  template<typename Ofstream, typename String, bool Text, bool Append>
+  bool fs_write(wstring* out, const wstring* in,
+                Interpreter& interp, unsigned) {
+    vector<char> fname;
+    String content;
+    if (!wstrtofn(fname, in[0]))
+      return false;
+
+    blitstr(content, in[1]);
+
+    ios_base::openmode mode = ios::out;
+    if (!Text)
+      mode |= ios::binary;
+    if (Append)
+      mode |= ios::app;
+    else
+      mode |= ios::trunc;
+
+    Ofstream output(&fname[0], mode);
+    if (!output) {
+      out[0] = L"0";
+      return true;
+    }
+
+    output << content;
+
+    out[0] = output? L"1" : L"0";
+    return true;
+  }
+
+  static GlobalBinding<TFunctionParser<1,2,fs_write<wofstream,
+                                                    wstring,
+                                                    true,
+                                                    false> > >
+  _write(L"write");
+  static GlobalBinding<TFunctionParser<1,2,fs_write<wofstream,
+                                                    wstring,
+                                                    true,
+                                                    true> > >
+  _append(L"append");
+  static GlobalBinding<TFunctionParser<1,2,fs_write<ofstream,
+                                                    string,
+                                                    false,
+                                                    false> > >
+  _writeBinary(L"write-binary");
+  static GlobalBinding<TFunctionParser<1,2,fs_write<ofstream,
+                                                    string,
+                                                    false,
+                                                    true> > >
+  _appendBinary(L"append-binary");
 }
