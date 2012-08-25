@@ -1,1 +1,35 @@
-README
+This file documents how to build and install TglNG. For the user manual, see
+README.
+
+DEPENDENCIES
+To build TglNG, the following items are REQUIRED:
+- A C++03-compliant C++ compiler (eg, G++)
+- Make
+If working from a raw Git clone, you additionally need GNU Autotools, as
+well as asciidoc.
+
+The following are RECOMMENDED, but TglNG will run without them (albeit with
+less functionality):
+- The POSIX.1-2001/POSIX.2 glob function (eg, GNU/Linux has this). This is used
+  by the internal ls command.
+- The 16-bit PCRE library, 8-bit PCRE library, or POSIX.1-2001 regular
+  expression library, in that order of preference. These are used by the
+  regular expression functions.
+
+BUILDING
+If you are building from a raw Git clone, first do
+  mkdir -p doc m4
+  autoreconf -i
+
+Run the following:
+  ./configure
+  make
+
+INSTALLING
+As root (or with sudo on Ubuntu etc), run
+  make install
+
+UNINSTALLING
+As root (or with sudo on Ubuntu etc), run
+  make uninstall
+

@@ -2,6 +2,11 @@ TGLNG(1)
 ========
 Jason Lingle <jasonlingle@yahoo.com>
 
+///////////////////////////////////////////////////////////////////////////////
+This file documents the usage and operation of TglNG.
+For installation and building instructions, see INSTALL.
+///////////////////////////////////////////////////////////////////////////////
+
 NAME
 ----
 tglng - Text Generation Language, the Next Generation
