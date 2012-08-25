@@ -173,6 +173,12 @@ namespace tglng {
     data.status = regexec(&data.rx, &data.input[data.inputOffset],
                           sizeof(data.matches)/sizeof(data.matches[0]),
                           data.matches, 0);
+    if (data.status == REG_NOMATCH) {
+      //Transform to a more uniform result
+      //(Nothing went wrong, no error should be returned, in theory)
+      data.status = 0;
+      memset(data.matches, -1, sizeof(data.matches));
+    }
     if (data.status) {
       //Failed for some reason
       data.why.resize(regerror(data.status, &data.rx, NULL, 0));
