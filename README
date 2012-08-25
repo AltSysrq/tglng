@@ -971,6 +971,12 @@ Result::
 Remarks::
   This command is available even if no other regular expressions are, since
   its primary purpose is to indicate what kind of support exists.
+Example::
+----------------
+#rx-support#()
+
+POSIX
+----------------
 
 Control Structures
 ~~~~~~~~~~~~~~~~~~
