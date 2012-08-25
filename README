@@ -978,6 +978,56 @@ Example::
 POSIX
 ----------------
 
+[[rx-match,rx-match]]
+rx-match
+^^^^^^^^
+Functional::
+  (matched captured remaining <- pattern string options)
+Result::
+  _matched_ is a _<<Boolean>>_ indicating whether _string_ was matched by
+  _pattern_. _captured_ is the empty string if unsuccessful; if successful, it
+  is a list of captured groups, where the zeroth ``group'' is the part of the
+  string which was matched by the whole pattern. _remaining_ is set to the tail
+  part of the string which did not match.
+Remarks::
+  _pattern_ is compiled at *run-time*, so errors are not detected when the
+  function is parsed.
+
+[[rx-match-inline,rx-match-inline]]
+rx-match-inline
+^^^^^^^^^^^^^^^
+Short Name:: R
+Arguments::
+  * _<<ANS>>_: _options_
+  * _<<CHR>>_: _delimiter_
+  * _<<STS>>_(_delimiter_): _pattern_
+  * _<<ART>>_: _string_
+Side-Effects::
+  Alters registers `0` through `9` to the values of the captured groups of
+  those indices, if the match is successful. The register `_` is set to the
+  part of the string *after* the match.
+Result::
+  A _<<Boolean>>_ indicating whether _string_ matches _pattern_.
+Remarks::
+  If _delimiter_ is `#`, then the parsing of _pattern_ is affected by *long
+  mode*. _pattern_ is compiled at *parse-time*, so any syntax errors are
+  discovered before the program runs. There is no way to embed _delimiter_
+  within _pattern_.
+Example::
+----------------
+R/%([^%]+)%/{foo %% %VAR% %% bar}
+[
+matched: `r0
+captured: `r1
+remaining: `r_
+`]
+
+1
+matched: %VAR%
+captured: VAR
+remaining:  %% bar
+----------------
+
 Control Structures
 ~~~~~~~~~~~~~~~~~~
 [[false-coalesce,false-coalesce]]

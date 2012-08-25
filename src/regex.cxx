@@ -145,6 +145,8 @@ namespace tglng {
       //Save error message
       data.why.resize(regerror(data.status, &data.rx, NULL, 0));
       regerror(data.status, &data.rx, &data.why[0], data.why.size());
+      //Free the pattern now, since the destructor won't think it exists
+      regfree(&data.rx);
     }
   }
 
@@ -159,7 +161,7 @@ namespace tglng {
   }
 
   void Regex::showWhy() const {
-    cout << "Compliling POSIX extended regular expression: "
+    cerr << "POSIX extended regular expression: "
          << &data.why[0] << endl;
   }
 
@@ -189,7 +191,7 @@ namespace tglng {
   unsigned Regex::groupCount() const {
     unsigned cnt = 0;
     while (cnt < sizeof(data.matches)/sizeof(data.matches[0]) &&
-           -1 != data.matches[0].rm_so)
+           -1 != data.matches[cnt].rm_so)
       ++cnt;
     return cnt;
   }
