@@ -925,6 +925,53 @@ Remarks::
 | str-toupper   | sU            | ALL UPPERCASE
 |===============================================================================
 
+Regular Expressions
+~~~~~~~~~~~~~~~~~~~
+If possible, TglNG supports a number of regular expression operations. How
+the regular expressions themselves behave varies somewhat based on the build
+environment. The following possibilities are considered in the order given:
+
+* If the 16-bit PCRE library is available at build time, it is used. Regular
+  expressions use roughly Perl5 syntax, and work corretly for Unicode within
+  the Basic Multilingual Plane. Characters whose numerical value exceeds 0xFFFF
+  are replaced with ASCII SUB (0x001A).
+* If the 8-bit PCRE library is available at build time, it is used. Regular
+  expressions use roughly Perl5 syntax, but only work fully correctly for ASCII;
+  characters between U+0080 and U+00FF are preserved, but might not function
+  correctly with respect to built-in character classes. Characts whose
+  numerical value exceeds 0xFF are replaced with ASCII SUB (0x001A).
+* If the POSIX.1-2001 regular expression library is available, it is
+  used. Regualar expressions use POSIX ``extended'' regular expression
+  syntax. Only ASCII is guaranteed fully supported; characters between U+0080
+  and U++00FF are preserved, but might not have expected results. Characters
+  whose numerical value exceeds 0xFF are replaced with ASCII SUB (0x001A).
+* Regular expression operations are not supported.
+
+Any _options_ string accepted by any regular expression functions as follows:
+Each character which has an understood meaning is used to set an option, the
+possible options described in the next paragraph. Any unknown character is
+silently ignored.
+
+The `i` option makes the pattern case-insensitive. The `l` option causes the
+beginning-of-text and end-of-text operators to also match line breaks, and
+prevents the dot operator and the negated range operator from matching line
+breaks.
+
+[[rx-support,rx-support]]
+rx-support
+^^^^^^^^^^
+Functional:: (1 <- 0)
+Result::
+  A string indicating what type of regular expressions are in use. Possible
+  values are:
+  - PCRE16
+  - PCRE8
+  - POSIX
+  - NONE
+Remarks::
+  This command is available even if no other regular expressions are, since
+  its primary purpose is to indicate what kind of support exists.
+
 Control Structures
 ~~~~~~~~~~~~~~~~~~
 [[false-coalesce,false-coalesce]]

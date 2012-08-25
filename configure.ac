@@ -16,7 +16,25 @@ AC_PROG_CXX
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h unistd.h glob.h])
+AC_CHECK_HEADERS([fcntl.h unistd.h glob.h regex.h pcre.h])
+AC_SEARCH_LIBS([pcre_compile], [pcre])
+AC_SEARCH_LIBS([pcre16_compile], [pcre], [
+  AC_DEFINE([PCRE_SUPPORTS_16_BIT], [1],
+            [Indicates that PCRE supports 16-bit strings])])
+
+AC_ARG_WITH([regexen],
+AS_HELP_STRING([--with-regexen], [Force regex engine to NONE, POSIX, PCRE8, or PCRE16]))
+AS_IF([test "x$with_regexen" = "xno" || test "x$with_regexen" = "xNONE"], [
+  AC_DEFINE([FORCE_REGEX_NONE], [1], [Force regex engine to NONE])], [
+  AS_IF([test "x$with_regexen" = "xPOSIX"], [
+    AC_DEFINE([FORCE_REGEX_POSIX], [1], [Force regex engine to POSIX])], [
+    AS_IF([test "x$with_regexen" = "xPCRE8"], [
+      AC_DEFINE([FORCE_REGEX_PCRE8], [1], [Force regex engine to PCRE8])], [
+      AS_IF([test "x$with_regexen" = "xPCRE16"], [
+        AC_DEFINE([FORCE_REGEX_PCRE16], [1], [Force regex engine to PCRE16])], [
+        AS_IF([test "x$with_regexen" = "xyes" || test "x$with_regexen" = "x"], [], [
+          AC_MSG_ERROR([Unknown argument to --with-regexen])])])])])])
+
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE

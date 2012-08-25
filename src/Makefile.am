@@ -7,6 +7,7 @@ tglng_SOURCES = \
  command.cxx \
  function.cxx \
  tokeniser.cxx \
+ regex.cxx \
  cmd/fundamental.cxx \
  cmd/long_mode.cxx \
  cmd/parens.cxx \
