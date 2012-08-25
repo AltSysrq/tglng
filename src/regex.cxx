@@ -116,7 +116,7 @@ namespace tglng {
     int status; //0=OK, others=error
     rstring input;
     wstring rawInput;
-    unsigned inputOffset;
+    unsigned inputOffset, headBegin, headEnd;
     string why;
     regmatch_t matches[10];
   };
@@ -183,8 +183,12 @@ namespace tglng {
     }
 
     //Matched if the zeroth group is not -1
-    if (-1 != data.matches[0].rm_eo)
+    if (-1 != data.matches[0].rm_eo) {
+      //Update offsets
+      data.headBegin = data.inputOffset;
+      data.headEnd = data.matches[0].rm_so;
       data.inputOffset = data.matches[0].rm_eo;
+    }
     return -1 != data.matches[0].rm_eo;
   }
 
@@ -204,6 +208,11 @@ namespace tglng {
   void Regex::tail(wstring& out) const {
     out.assign(data.rawInput, data.inputOffset,
                data.rawInput.size() - data.inputOffset);
+  }
+
+  void Regex::head(wstring& out) const {
+    out.assign(data.rawInput, data.headBegin,
+               data.headEnd - data.headBegin);
   }
 #endif /* POSIX */
 }

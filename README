@@ -982,13 +982,14 @@ POSIX
 rx-match
 ^^^^^^^^
 Functional::
-  (matched captured remaining <- pattern string options)
+  (matched captured remaining skipped <- pattern string options)
 Result::
   _matched_ is a _<<Boolean>>_ indicating whether _string_ was matched by
   _pattern_. _captured_ is the empty string if unsuccessful; if successful, it
   is a list of captured groups, where the zeroth ``group'' is the part of the
   string which was matched by the whole pattern. _remaining_ is set to the tail
-  part of the string which did not match.
+  part of the string which did not match; _skipped_ is set to the leading part
+  of the string which was not matched.
 Remarks::
   _pattern_ is compiled at *run-time*, so errors are not detected when the
   function is parsed.
@@ -1004,8 +1005,9 @@ Arguments::
   * _<<ART>>_: _string_
 Side-Effects::
   Alters registers `0` through `9` to the values of the captured groups of
-  those indices, if the match is successful. The register `_` is set to the
-  part of the string *after* the match.
+  those indices, if the match is successful. The register `>` is set to the
+  part of the string *after* the match, and the register `<` is set to the part
+  of the string *before* the match.
 Result::
   A _<<Boolean>>_ indicating whether _string_ matches _pattern_.
 Remarks::
@@ -1017,14 +1019,16 @@ Example::
 ----------------
 R/%([^%]+)%/{foo %% %VAR% %% bar}
 [
-matched: `r0
-captured: `r1
-remaining: `r_
+matched  : `r0
+captured : `r1
+skipped  : `r<
+remaining: `r>
 `]
 
 1
-matched: %VAR%
-captured: VAR
+matched  : %VAR%
+captured : VAR
+skipped  : foo %% 
 remaining:  %% bar
 ----------------
 

@@ -86,6 +86,11 @@ namespace tglng {
     void group(std::wstring&, unsigned ix) const;
 
     /**
+     * Retrieves the portion of the input string which was skipped by the last
+     * call to match().
+     */
+    void head(std::wstring&) const;
+    /**
      * Retrieves the portion of the input string which has not been matched.
      *
      * This value is undefined after match() has returned false.

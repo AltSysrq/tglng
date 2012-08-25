@@ -46,12 +46,14 @@ namespace tglng {
       out[0] = L"0";
       out[1].clear();
       out[2].clear();
+      out[3].clear();
       return true;
     }
 
     out[0] = L"1";
     out[1].clear();
     rx.tail(out[2]);
+    rx.head(out[3]);
     //Build list of groups
     unsigned numGroups = rx.groupCount();
     for (unsigned i = 0; i < numGroups; ++i) {
@@ -63,6 +65,6 @@ namespace tglng {
     return true;
   }
 
-  static GlobalBinding<TFunctionParser<3,3,rxMatch> >
+  static GlobalBinding<TFunctionParser<4,3,rxMatch> >
   _rxMatch(L"rx-match");
 }
