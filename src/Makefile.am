@@ -22,4 +22,5 @@ tglng_SOURCES = \
  cmd/defun.cxx \
  cmd/list.cxx \
  cmd/variable.cxx \
- cmd/fs.cxx
+ cmd/fs.cxx \
+ cmd/regex_ops.cxx
