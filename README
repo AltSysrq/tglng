@@ -1017,7 +1017,7 @@ Remarks::
   within _pattern_.
 Example::
 ----------------
-R/%([^%]+)%/{foo %% %VAR% %% bar}
+R/%([^a-zA-Z]+)%/{foo %%%VAR% %% bar}
 [
 matched  : `r0
 captured : `r1
@@ -1028,7 +1028,7 @@ remaining: `r>
 1
 matched  : %VAR%
 captured : VAR
-skipped  : foo %% 
+skipped  : foo %%
 remaining:  %% bar
 ----------------
 
