@@ -218,7 +218,7 @@ namespace tglng {
                                                  const wstring& text,
                                                  unsigned& offset,
                                                  Command*& left,
-                                                 wchar_t sent)
+                                                 const wchar_t& sent)
   : Argument(interp, text, offset, left),
     sentinel(sent)
   { }
@@ -397,7 +397,7 @@ namespace tglng {
   }
 
   ArgumentSyntaxSugar<ArgumentExtractor<SentinelStringArgument> >
-  ArgumentParser::to(wstring& dst, wchar_t sentinel) {
+  ArgumentParser::to(wstring& dst, const wchar_t& sentinel) {
     return ArgumentSyntaxSugar<ArgumentExtractor<SentinelStringArgument> >(
       ArgumentExtractor<SentinelStringArgument>(
         SentinelStringArgument(interp, text, offset, left, sentinel),

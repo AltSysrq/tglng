@@ -101,11 +101,11 @@ namespace tglng {
    * sentinel is not found.
    */
   class SentinelStringArgument: public Argument {
-    wchar_t sentinel;
+    const wchar_t& sentinel;
 
   public:
     SentinelStringArgument(Interpreter&, const std::wstring&, unsigned&,
-                           Command*&, wchar_t);
+                           Command*&, const wchar_t&);
     typedef std::wstring get_t;
     bool get(get_t&);
     bool match();
@@ -417,9 +417,9 @@ namespace tglng {
     ///destination.
     ArgumentSyntaxSugar<ArgumentExtractor<SectionArgument> > s(Section&);
     ///Returns a wrapped SentinelStringArgument storing the string into the
-    ///given destination and terminating on the given character.
+    ///given destination and terminating on the given character reference.
     ArgumentSyntaxSugar<ArgumentExtractor<SentinelStringArgument> >
-    to(std::wstring&, wchar_t);
+    to(std::wstring&, const wchar_t&);
     ///Returns a wrapped AlnumStringArgument storing the string into the given
     ///destination.
     ArgumentSyntaxSugar<ArgumentExtractor<AlnumStringArgument> >

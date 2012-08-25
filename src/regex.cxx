@@ -100,7 +100,7 @@ namespace tglng {
   Regex::~Regex() {}
   Regex::operator bool() const { return false; }
   void Regex::showWhy() const {
-    wcerr << L"Regular expressions not supported in this build." << endl;
+    wcerr << L"regular expressions not supported in this build." << endl;
   }
   void Regex::input(const wstring&) {}
   bool Regex::match() { return false; }
@@ -145,8 +145,6 @@ namespace tglng {
       //Save error message
       data.why.resize(regerror(data.status, &data.rx, NULL, 0));
       regerror(data.status, &data.rx, &data.why[0], data.why.size());
-      //Free the pattern now, since the destructor won't think it exists
-      regfree(&data.rx);
     }
   }
 
@@ -161,8 +159,8 @@ namespace tglng {
   }
 
   void Regex::showWhy() const {
-    cerr << "POSIX extended regular expression: "
-         << &data.why[0] << endl;
+    wcerr << "POSIX extended regular expression: "
+          << &data.why[0] << endl;
   }
 
   void Regex::input(const std::wstring& str) {
@@ -179,6 +177,8 @@ namespace tglng {
       //Failed for some reason
       data.why.resize(regerror(data.status, &data.rx, NULL, 0));
       regerror(data.status, &data.rx, &data.why[0], data.why.size());
+      //Free the pattern now, since the destructor won't think it exists
+      regfree(&data.rx);
       return false;
     }
 

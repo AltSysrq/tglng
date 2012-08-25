@@ -4,6 +4,7 @@
 
 #include <string>
 #include <cctype>
+#include <memory>
 #include <iostream>
 
 #include "../command.hxx"
@@ -29,7 +30,7 @@ namespace tglng {
                Interpreter& interp, unsigned) {
     Regex rx(in[0], in[2]);
     if (!rx) {
-      cerr << "tglng: error: compiling ";
+      wcerr << "tglng: error: compiling ";
       rx.showWhy();
       return false;
     }
@@ -37,7 +38,7 @@ namespace tglng {
     rx.input(in[1]);
     if (!rx.match()) {
       if (!rx) {
-        cerr << "tglng: error: executing ";
+        wcerr << "tglng: error: executing ";
         rx.showWhy();
         return false;
       }
@@ -67,4 +68,82 @@ namespace tglng {
 
   static GlobalBinding<TFunctionParser<4,3,rxMatch> >
   _rxMatch(L"rx-match");
+
+  class RegexMatchInline: public Command {
+    auto_ptr<Regex> rx;
+    auto_ptr<Command> sub;
+
+  public:
+    RegexMatchInline(Command* left,
+                     auto_ptr<Regex>& rx_,
+                     auto_ptr<Command>& sub_)
+    : Command(left), rx(rx_), sub(sub_)
+    { }
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      if (!*rx) return false; //Can't do anything with a broken regex
+
+      wstring str;
+      if (!interp.exec(str, sub.get()))
+        return false;
+
+      rx->input(str);
+      if (!rx->match()) {
+        if (!*rx) {
+          wcerr << "tglng: error: executing ";
+          rx->showWhy();
+          return false;
+        }
+
+        //Just a failed match
+        dst = L"0";
+        return true;
+      }
+
+      //Match successful
+      dst = L"1";
+      unsigned numGroups = rx->groupCount();
+      for (unsigned i = 0; i < 10; ++i)
+        if (i < numGroups)
+          rx->group(interp.registers[i + L'0'], i);
+        else
+          interp.registers[i + L'0'] = L"";
+      rx->head(interp.registers[L'<']);
+      rx->tail(interp.registers[L'>']);
+      return true;
+    }
+  };
+
+  class RegexMatchInlineParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp,
+                              Command*& out,
+                              const wstring& text,
+                              unsigned& offset) {
+      wstring options, pattern;
+      auto_ptr<Command> sub;
+      unsigned patternOffset;
+      wchar_t delimiter;
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(), -a.an(options), a.h(delimiter),
+             a.to(pattern, delimiter) >> patternOffset,
+             a.a(sub)])
+        return ParseError;
+
+      auto_ptr<Regex> rx(new Regex(pattern, options));
+      if (!*rx) {
+        interp.error(L"Failed to compile regular expression.",
+                     text, patternOffset);
+        wcerr << L"tglng: error: compiling ";
+        rx->showWhy();
+        return ParseError;
+      }
+
+      out = new RegexMatchInline(out, rx, sub);
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<RegexMatchInlineParser>
+  _rxMatchInline(L"rx-match-inline");
 }
