@@ -109,6 +109,7 @@ namespace tglng {
   void Regex::group(wstring&, unsigned) const {}
   void Regex::tail(wstring&) const {}
   void Regex::head(wstring&) const {}
+  unsigned Regex::where() const { return 0; }
 #endif /* NONE */
 
 #if TGLNG_REGEX_LEVEL == TGLNG_REGEX_POSIX
@@ -229,6 +230,10 @@ namespace tglng {
     dst.assign(data.rawInput, data.headBegin,
                data.headEnd - data.headBegin);
   }
+
+  unsigned Regex::where() const {
+    return 0;
+  }
 #endif /* POSIX */
 
 #if TGLNG_REGEX_LEVEL == TGLNG_REGEX_PCRE8 ||   \
@@ -276,6 +281,7 @@ namespace tglng {
   {
     rstring rpattern;
     const char* errorMessage = NULL;
+    data.errorOffset = 0;
     convertString(rpattern, pattern);
 
     //Parse the options
@@ -397,6 +403,10 @@ namespace tglng {
   void Regex::tail(wstring& dst) const {
     dst.assign(data.rawInput, data.inputOffset,
                data.rawInput.size() - data.inputOffset);
+  }
+
+  unsigned Regex::where() const {
+    return data.errorOffset;
   }
 #endif /* PCRE* */
 }

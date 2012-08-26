@@ -32,6 +32,8 @@ namespace tglng {
     if (!rx) {
       wcerr << "tglng: error: compiling ";
       rx.showWhy();
+      interp.error(L"Regular expression error here (maybe).",
+                   in[1], rx.where());
       return false;
     }
 
@@ -136,6 +138,8 @@ namespace tglng {
                      text, patternOffset);
         wcerr << L"tglng: error: compiling ";
         rx->showWhy();
+        interp.error(L"Regular expression error here (maybe).",
+                     text, patternOffset + rx->where());
         return ParseError;
       }
 

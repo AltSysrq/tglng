@@ -61,6 +61,12 @@ namespace tglng {
     void showWhy() const;
 
     /**
+     * Returns the character offset within the input pattern where a parse
+     * error occurred, or zero if unknown.
+     */
+    unsigned where() const;
+
+    /**
      * Sets a new input string for this regex.
      */
     void input(const std::wstring&);
