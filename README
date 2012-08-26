@@ -366,6 +366,19 @@ Remarks::
   to look up what command to run; it is essentially a secondary short-name
   namespace. <<BindDisclaimer>>
 
+[[ignore,ignore]]
+ignore
+^^^^^^
+Arguments::
+  * _<<ART>>_: _ignored_
+Functional:: (1 <- 1)
+Side-Effects::
+  Evaluates _ignored_.
+Result::
+  The empty string.
+Remarks::
+  This is the idiomatic way to execute a command only for its side-effects.
+
 [[long-command,long-command]]
 long-command
 ^^^^^^^^^^^^

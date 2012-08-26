@@ -11,6 +11,7 @@
 #include "../argument.hxx"
 #include "../common.hxx"
 #include "../function.hxx"
+#include "basic_parsers.hxx"
 
 using namespace std;
 
@@ -185,4 +186,21 @@ namespace tglng {
   };
 
   static GlobalBinding<SetLocaleParser> _setLocaleParser(L"set-locale");
+
+  class Ignore: public UnaryCommand {
+  public:
+    Ignore(Command* left, auto_ptr<Command>& sub)
+    : UnaryCommand(left, sub) {}
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      wstring ignored;
+      if (!interp.exec(ignored, sub.get()))
+        return false;
+
+      dst.clear();
+      return true;
+    }
+  };
+
+  static GlobalBinding<UnaryCommandParser<Ignore> > _ignore(L"ignore");
 }
