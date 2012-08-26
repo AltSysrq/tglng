@@ -945,7 +945,9 @@ environment. The following possibilities are considered in the order given:
   syntax. Only ASCII is guaranteed fully supported; characters between U+0080
   and U++00FF are preserved, but might not have expected results. Characters
   whose numerical value exceeds 0xFF are replaced with ASCII SUB (0x001A).
-* Regular expression operations are not supported.
+* Regular expression operations are not supported. Note that all `rx-*`
+  commands still *exist*, but only _<<rx-support>>_ will work (all others will
+  fail to parse their regular expressions).
 
 Any _options_ string accepted by any regular expression functions as follows:
 Each character which has an understood meaning is used to set an option, the
