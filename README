@@ -1034,6 +1034,69 @@ skipped  : foo %%
 remaining:  %% bar
 ----------------
 
+[[rx-repl,rx-repl]]
+rx-repl
+^^^^^^^
+Functional::
+  (result <- pattern replacement string limit options)
+Result::
+  _string_, with some or all substrings which match _pattern_ replaced by
+  _replacement_ verbatim. At most _limit_ replacements occur; the empty string
+  indicates infinity.
+
+[[rx-repl-each,rx-repl-each]]
+rx-repl-each
+^^^^^^^^^^^^
+Functional::
+  (result <- pattern fun:(replacement <- match groups) string limit options)
+Result::
+  _string_, with up to _limit_ occurrances of _pattern_ replaced with the
+  result of _fun_, called with the whole string which matched (_match_) and a
+  list of groups, *including* the whole pattern match.
+Example::
+----------------
+#long-mode#
+rx-repl-each({[0-9]+}, λ(x) *$x3, {
+  Take 2 litres of flour.
+  Add 3 eggs.
+  Stir in $100 worth of caviar.
+  Serves 4 people.
+})
+
+  Take 6 litres of flour.
+  Add 9 eggs.
+  Stir in $300 worth of caviar.
+  Serves 12 people.
+----------------
+
+[[rx-repl-inline,rx-repl-inline]]
+rx-repl-inline
+^^^^^^^^^^^^^^
+Short Name:: S
+Arguments::
+  * Optional _<<ANS>>_: _options_
+  * _<<CHR>>_: _delimiter_
+  * _<<STS>>_(_delimiter_): _pattern_
+  * Optional _<<ART>>_: _limit_
+  * _<<SEC>>_: _replacement_
+  * _<<SEC>>_: _string_
+Side-Effects::
+  Destroys registers as with _<<rx-match-inline>>_.
+Result::
+  Replaces up to _limit_ (default infinity) occurrances of _pattern_ within the
+  result of _string_ by evaluating _replacement_, registers having been set
+  before evaluation of _replacement_ as per _<<rx-match-inline>>_.
+Remarks::
+  If _delimiter_ is `#`, _pattern_ is affected by *long mode* (ie, in can
+  terminate on a number of undesirable characters). There is no way to embed
+  _delimiter_ within _pattern_ (other than numeric escape codes).
+Example::
+----------------
+S/%([a-zA-Z+])%/2[<<`r1>>`]{%%%foo% %bar% %baz%}
+
+%%<<foo>> <<bar>> %baz%
+----------------
+
 Control Structures
 ~~~~~~~~~~~~~~~~~~
 [[false-coalesce,false-coalesce]]
