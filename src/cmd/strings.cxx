@@ -17,15 +17,14 @@ using namespace std;
 
 namespace tglng {
   template<typename Operator>
-  class StringComparison: public Command {
+  class StringComparison: public BinaryCommand {
     Operator op;
-    auto_ptr<Command> lhs, rhs;
 
   public:
     StringComparison(Command* left,
                      auto_ptr<Command>& l,
                      auto_ptr<Command>& r)
-    : Command(left), lhs(l), rhs(r) {}
+    : BinaryCommand(left, l, r) {}
 
     virtual bool exec(wstring& out, Interpreter& interp) {
       wstring lstr, rstr;
@@ -38,18 +37,8 @@ namespace tglng {
   };
 
   template<typename Operator>
-  class StringComparisonParser: public CommandParser {
-  public:
-    virtual ParseResult parse(Interpreter& interp, Command*& out,
-                              const wstring& text,
-                              unsigned& offset) {
-      auto_ptr<Command> lhs, rhs;
-      ArgumentParser a(interp, text, offset, out);
-      if (!a[a.h(), a.a(lhs), a.a(rhs)]) return ParseError;
-
-      out = new StringComparison<Operator>(out, lhs, rhs);
-      return ContinueParsing;
-    }
+  class StringComparisonParser:
+  public BinaryCommandParser<StringComparison<Operator> > {
   };
 
   static GlobalBinding<StringComparisonParser<equal_to<wstring> > >

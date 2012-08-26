@@ -170,6 +170,7 @@ namespace tglng {
       return false;
 
     out[0].clear();
+    out[1].clear();
     wstring remainder(in[1]), item;
     while (lcar(item, remainder, remainder, interp)) {
       wstring result;
@@ -178,6 +179,8 @@ namespace tglng {
 
       if (parseBool(result))
         lappend(out[0], item);
+      else
+        lappend(out[1], item);
     }
 
     return true;
@@ -314,10 +317,10 @@ namespace tglng {
   _listMap(L"list-map");
   static GlobalBinding<TFunctionParser<1,3,list::fold> >
   _listFold(L"list-fold");
-  static GlobalBinding<TFunctionParser<1,2,list::filter> >
+  static GlobalBinding<TFunctionParser<2,2,list::filter> >
   _listFilter(L"list-filter");
   static GlobalBinding<TFunctionParser<1,1,list::length> >
-  _listLength(L"list-length");
+  _listLength(L"list-len");
   static GlobalBinding<TFunctionParser<1,2,list::ix> >
   _listIndex(L"list-ix");
   static GlobalBinding<TFunctionParser<1,1,list::zip> >
