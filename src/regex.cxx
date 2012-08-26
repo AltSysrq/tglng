@@ -173,6 +173,13 @@ namespace tglng {
   }
 
   bool Regex::match() {
+    //Manually fail the empty string
+    if (data.inputOffset >= data.input.size()) {
+      data.status = 0;
+      memset(data.matches, -1, sizeof(data.matches));
+      return false;
+    }
+
     data.status = regexec(&data.rx, &data.input[data.inputOffset],
                           sizeof(data.matches)/sizeof(data.matches[0]),
                           data.matches, 0);
