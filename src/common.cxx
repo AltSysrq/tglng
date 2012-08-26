@@ -111,6 +111,7 @@ namespace tglng {
 
   wstring intToStr(signed value) {
     wostringstream out;
+    out.imbue(locale("C"));
     out << value;
     return out.str();
   }
