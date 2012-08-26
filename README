@@ -1256,6 +1256,19 @@ Result::
   If _condition_ was true, the result of _then_; otherwise, the result of
   _else_.
 
+[[while,while]]
+while
+^^^^^
+Short Name:: w
+Arguments::
+  * _<<ART>>_: _condition_
+  * _<<SEC>>_: _body_
+Side-Effects::
+  Evaluates _condition_. If it results in a true _<<Boolean>>_, evaluates
+  _body_, then repeats this process.
+Result::
+  The concatenation of all results of _body_.
+
 Tokenisation
 ~~~~~~~~~~~~
 Tokenisation (ie, splitting a string into separate parts) is handled by two

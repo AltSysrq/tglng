@@ -349,4 +349,49 @@ namespace tglng {
 
   static GlobalBinding<ForEachParser<false> > _forEach(L"for-each");
   static GlobalBinding<ForEachParser<true > > _forEachP(L"for-each-print");
+
+  class While: public Command {
+    auto_ptr<Command> condition;
+    AutoSection body;
+
+  public:
+    While(Command* left, auto_ptr<Command>& cond, Section& bod)
+    : Command(left), condition(cond), body(bod)
+    { }
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      dst.clear();
+      wstring result;
+      while (true) {
+        if (!interp.exec(result, condition.get()))
+          return false;
+        if (!parseBool(result))
+          break;
+
+        if (!body.exec(result, interp))
+          return false;
+        dst += result;
+      }
+
+      return true;
+    }
+  };
+
+  class WhileParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp, Command*& out,
+                              const wstring& text, unsigned& offset) {
+      auto_ptr<Command> condition;
+      AutoSection body;
+      ArgumentParser a(interp, text, offset, out);
+      if (!a[a.h(), a.a(condition), a.s(body)])
+        return ParseError;
+
+      out = new While(out, condition, body);
+      body.clear();
+      return ContinueParsing;
+    }
+  };
+
+  static GlobalBinding<WhileParser> _while(L"while");
 }
