@@ -121,7 +121,8 @@ namespace tglng {
     wstring rawInput;
     unsigned inputOffset, headBegin, headEnd;
     string why;
-    regmatch_t matches[10];
+    #define MAX_MATCHES 10
+    regmatch_t matches[MAX_MATCHES];
   };
 
   Regex::Regex(const wstring& pattern, const wstring& options)
@@ -181,7 +182,7 @@ namespace tglng {
     }
 
     data.status = regexec(&data.rx, &data.input[data.inputOffset],
-                          sizeof(data.matches)/sizeof(data.matches[0]),
+                          MAX_MATCHES,
                           data.matches, 0);
     if (data.status == REG_NOMATCH) {
       //Transform to a more uniform result
@@ -198,6 +199,14 @@ namespace tglng {
       return false;
     }
 
+    //Add offset to all matches
+    for (unsigned i = 0; i < MAX_MATCHES; ++i) {
+      if (data.matches[i].rm_so != -1) {
+        data.matches[i].rm_so += data.inputOffset;
+        data.matches[i].rm_eo += data.inputOffset;
+      }
+    }
+
     //Matched if the zeroth group is not -1
     if (-1 != data.matches[0].rm_eo) {
       //Update offsets
@@ -212,7 +221,7 @@ namespace tglng {
     //Elements in the middle may be unmatched if that particular group was
     //excluded, so search for the last group.
     unsigned last;
-    for (unsigned i = 0; i < sizeof(data.matches)/sizeof(data.matches[0]); ++i)
+    for (unsigned i = 0; i < MAX_MATCHES; ++i)
       if (-1 != data.matches[i].rm_so)
         last = i;
 
@@ -356,6 +365,10 @@ namespace tglng {
                             PCRE_NOTEMPTY,
                             data.matches,
                             sizeof(data.matches)/sizeof(data.matches[0]));
+    if (status == PCRE_ERROR_NOMATCH) {
+      status = 0;
+      memset(data.matches, -1, sizeof(data.matches));
+    }
     if (status < 0) {
       //Error (there doesn't seem to be any way to get an error message)
       ostringstream msg;
