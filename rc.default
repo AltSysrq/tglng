@@ -78,3 +78,15 @@ defun parent-directory(f) (
 defun file-extension(f) (
   ignore R:[^/]\.([^./]+)$:$f
   $1)
+
+defun sort(ic) (
+  if (< list-len($i) 2) $i (
+    if (= {} $c) (@c{str-slt})
+    @p list-ix($i, random(list-len($i)))
+    @l list-filter[r](λ(x) call $c($x, $p), $i)
+    @r list-filter[p](λ(x) call $c($p, $x), $r)
+    @l call {sort} ($l, $c)
+    @r call {sort} ($r, $c)
+    list-flatten(list($l, $p, $r))
+  )
+)

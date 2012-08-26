@@ -1514,12 +1514,13 @@ foo bar (with spaces) with,comma
 [[list-filter,list-filter]]
 list-filter
 ^^^^^^^^^^^
-Functional:: (list <- fun:(accept <- item) list)
+Functional:: (list others <- fun:(accept <- item) list)
 Side-Effects::
   Calls _fun_ for each element in _list_.
 Result::
   A list built from all elements from _list_ for which _fun_ returned a true
-  _<<Boolean>>_.
+  _<<Boolean>>_. _others_ is all elements from _list_ for which _fun_ returned
+  a false _<<Boolean>>_.
 Example:: (See also _<<lambda>>_)
 ----------------
 #list-filter#(λ(n) >$n3, `F{ })
@@ -1869,6 +1870,15 @@ Result::
   A path to the directory containing the given filename. Returns ``/'' for the
   root. Note that passing ``.'' gives back ``.'', as that is, in fact, the
   directory containing the file of that name.
+
+[[sort,sort]]
+sort
+^^^^
+Functional:: (list <- list comparator:(1 <- 2))
+Result::
+  _list_, with the elements sorted according to _comparitor_, which defaults to
+  _<<str-slt>>_ if not specfied. _comparator_ is a function which takes two
+  arguments and returns whether the first comes *strictly* before the second.
 
 [[tokfmt-csv,tokfmt-csv]]
 tokfmt-csv
