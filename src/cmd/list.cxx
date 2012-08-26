@@ -54,7 +54,7 @@ namespace tglng {
       }
     }
 
-    if (hasSpace || hasParen || hasBrack || hasBrace) {
+    if (hasSpace || hasParen || hasBrack || hasBrace || str.empty()) {
       if (!hasParen)
         str = L'(' + str + L')';
       else if (!hasBrack)
