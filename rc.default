@@ -25,6 +25,7 @@ bind for-integer     f
 bind for-int-print   F
 bind for-each        e
 bind for-each-print  E
+bind while           w
 
 ensemble-new         string-ops
 bind string-ops      s
