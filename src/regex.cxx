@@ -5,10 +5,11 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 //Include available regex headers
-#ifdef HAVE_PRCRE_H
+#ifdef HAVE_PCRE_H
 #include <pcre.h>
 #endif
 #ifdef HAVE_REGEX_H
@@ -221,4 +222,173 @@ namespace tglng {
                data.headEnd - data.headBegin);
   }
 #endif /* POSIX */
+
+#if TGLNG_REGEX_LEVEL == TGLNG_REGEX_PCRE8 ||   \
+    TGLNG_REGEX_LEVEL == TGLNG_REGEX_PCRE16
+#  if TGLNG_REGEX_LEVEL == TGLNG_REGEX_PCRE8
+#    define pcreN pcre
+#    define pcreN_compile    pcre_compile
+#    define pcreN_exec       pcre_exec
+#    define pcreN_free       pcre_free
+#    define pcreN_maketables pcre_maketables
+#  else
+#    define pcreN pcre16
+#    define pcreN_compile    pcre16_compile
+#    define pcreN_exec       pcre16_exec
+#    define pcreN_free       pcre16_free
+#    define pcreN_maketables pcre16_maketables
+#  endif
+
+  /* By default, PCRE only classifies characters based on ASCII (some builds
+   * may instead automatically rebuild the tables according to the "C" locale
+   * (why not the system locale?), but we can't count on that.
+   *
+   * Whenever the current C locale (by setlocale(LC_ALL,NULL)) differs from the
+   * lastPcreTableLocale, generate a new table.
+   */
+  static string lastPcreTableLocale("C");
+  static const unsigned char* localPcreTable(NULL);
+
+  struct RegexData {
+    pcreN* rx;
+    unsigned errorOffset;
+    /* We want ten matches. Each match takes two entries. Additionally, PCRE
+     * requires that we allocate an extra entry at the end for each match.
+     */
+#define MAX_MATCHES 10
+    signed matches[MAX_MATCHES*3];
+    rstring input;
+    wstring rawInput;
+    unsigned inputOffset, headBegin, headEnd;
+    string errorMessage;
+  };
+
+  Regex::Regex(const wstring& pattern, const wstring& options)
+  : data(*new RegexData)
+  {
+    rstring rpattern;
+    const char* errorMessage = NULL;
+    convertString(rpattern, pattern);
+
+    //Parse the options
+    int flags = PCRE_DOTALL | PCRE_DOLLAR_ENDONLY;
+    for (unsigned i = 0; i < options.size(); ++i)
+      switch (options[i]) {
+      case L'i':
+        flags |= PCRE_CASELESS;
+        break;
+
+      case L'l':
+        flags &= ~(PCRE_DOTALL | PCRE_DOLLAR_ENDONLY);
+        //Would be nice if there were a constant for this
+        //(Then again,
+        //  flags &= ~(`[PCRE_NEWLINE_`E{CR LF CRLF ANYCRLF ANY}| |`]);
+        flags &= ~(PCRE_NEWLINE_CR | PCRE_NEWLINE_LF | PCRE_NEWLINE_CRLF |
+                   PCRE_NEWLINE_ANYCRLF | PCRE_NEWLINE_ANY);
+        flags |= PCRE_MULTILINE | PCRE_NEWLINE_ANYCRLF;
+        break;
+      }
+
+    //Generate a table if necessary
+    if (lastPcreTableLocale != setlocale(LC_ALL, NULL)) {
+      lastPcreTableLocale = setlocale(LC_ALL, NULL);
+      if (localPcreTable)
+        pcreN_free(const_cast<void*>(static_cast<const void*>(localPcreTable)));
+      localPcreTable = pcreN_maketables();
+    }
+
+    data.rx = pcreN_compile(&rpattern[0], flags, &errorMessage,
+                            (int*)&data.errorOffset, localPcreTable);
+    if (!data.rx)
+      data.errorMessage = errorMessage;
+  }
+
+  Regex::~Regex() {
+    if (data.rx)
+      pcreN_free(data.rx);
+    delete &data;
+  }
+
+  Regex::operator bool() const {
+    return !!data.rx;
+  }
+
+  void Regex::showWhy() const {
+    wcerr << L"Perl-Compatible Regular Expression: "
+          << data.errorMessage.c_str() << endl;
+  }
+
+  void Regex::input(const wstring& str) {
+    convertString(data.input, str);
+    data.rawInput = str;
+    data.inputOffset = 0;
+  }
+
+  bool Regex::match() {
+    //Set all elements to -1
+    memset(data.matches, -1, sizeof(data.matches));
+    int status = pcreN_exec(data.rx, NULL,
+                            &data.input[0],
+                            //Subtract one for term NUL
+                            data.input.size() - 1,
+                            data.inputOffset,
+                            PCRE_NOTEMPTY,
+                            data.matches,
+                            sizeof(data.matches)/sizeof(data.matches[0]));
+    if (status < 0) {
+      //Error (there doesn't seem to be any way to get an error message)
+      ostringstream msg;
+      msg << "Perl-Compatible Regular Expression: error code " << status;
+      data.errorMessage = msg.str();
+      //Free the rx so that operator bool() returns false
+      pcreN_free(data.rx);
+      data.rx = NULL;
+      return false;
+    }
+
+    //PCRE can return 0 even for successful matches (eg, there were more groups
+    //than provided), so check for success manually.
+    //Any group which was not matched will have entries of -1. If matching is
+    //successful, group 0 is defined.
+    if (data.matches[0] != -1) {
+      //Advance input
+      data.headBegin = data.inputOffset;
+      data.headEnd = data.matches[0];
+      data.inputOffset = data.matches[1];
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  unsigned Regex::groupCount() const {
+    //PCRE groups are indexed by occurrance within the pattern, so some groups
+    //might not match; find the last matched group.
+    unsigned last = 0;
+    for (unsigned i = 0; i < MAX_MATCHES; ++i)
+      if (data.matches[i*2] != -1)
+        last = i;
+
+    return last+1;
+  }
+
+  void Regex::group(wstring& dst, unsigned ix) const {
+    //Some middle groups may be unmatched, so return an empty string if -1
+    if (data.matches[ix*2] == -1)
+      dst.clear();
+    else
+      dst.assign(data.rawInput, data.matches[ix*2],
+                 data.matches[ix*2+1] - data.matches[ix*2]);
+  }
+
+  void Regex::head(wstring& dst) const {
+    dst.assign(data.rawInput, data.headBegin,
+               data.headEnd - data.headBegin);
+  }
+
+  void Regex::tail(wstring& dst) const {
+    dst.assign(data.rawInput, data.inputOffset,
+               data.rawInput.size() - data.inputOffset);
+  }
+#endif /* PCRE* */
 }
