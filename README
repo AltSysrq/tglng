@@ -1818,6 +1818,33 @@ user functions.
 
 Commands
 ~~~~~~~~
+[[basename,basename]]
+basename
+^^^^^^^^
+Functional:: (1 <- 1)
+Result::
+  The given filename without any leading directory names. Assumes UNIX-style
+  forward-slash-separated directories.
+
+[[file-extension,file-extension]]
+file-extension
+^^^^^^^^^^^^^^
+Functional:: (1 <- 1)
+Result::
+  The extension (excluding the dot) of the given filename, or the empty string
+  if the file has no extension. Assumes UNIX-style forward-slash-separated
+  directories, and understands hidden files (eg, ``~/.emacs'' gives an empty
+  string and not ``emacs'').
+
+[[parent-directory,parent-directory]]
+parent-directory
+^^^^^^^^^^^^^^^^
+Functional:: (1 <- 1)
+Result::
+  A path to the directory containing the given filename. Returns ``/'' for the
+  root. Note that passing ``.'' gives back ``.'', as that is, in fact, the
+  directory containing the file of that name.
+
 [[tokfmt-csv,tokfmt-csv]]
 tokfmt-csv
 ^^^^^^^^^^
