@@ -723,6 +723,31 @@ Result::
   A _<<Boolean>>_ indicating whether the _<<Number>>_ result of _lhs_ is
   **g**reater than or **eq**ual to the _<<Number>>_ result of _rhs_.
 
+[[random,random]]
+random
+^^^^^^
+Functional:: (random-integer <- maximum)
+Result::
+  A pseudo-random integer between 0 (inclusive) and _maximum_ (exclusive). If
+  _maximum_ is the empty string, the maximum value is system-dependent.
+Remarks::
+  TglNG does not automatically seed the random number generator. See
+  _<<seed-random>>_.
+
+[[seed-random,seed-random]]
+seed-random
+^^^^^^^^^^^
+Functional:: (empty <- seed)
+Side-Effects::
+  Seeds the pseudorandom number generator with _seed_, or to the current time
+  if _seed_ is the empty string.
+Result::
+  The empty string.
+Remarks::
+  If you want your random numbers to differ between invocations of TglNG, you
+  will need to call this with the default _seed_ argument before you generate
+  your ``random'' numbers.
+
 Logic
 ~~~~~
 [[logical-and,logical-and]]

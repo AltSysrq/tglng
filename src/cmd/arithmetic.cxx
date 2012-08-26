@@ -7,11 +7,15 @@
 #include <sstream>
 #include <memory>
 #include <functional>
+#include <ctime>
+#include <cstdlib>
+#include <climits>
 
 #include "../command.hxx"
 #include "../argument.hxx"
 #include "../interp.hxx"
 #include "basic_parsers.hxx"
+#include "../function.hxx"
 #include "../common.hxx"
 
 using namespace std;
@@ -92,4 +96,34 @@ namespace tglng {
   static GlobalBinding<ArithmeticParser<greater_equal<signed>,
                                         false> >
   _geqParser(L"num-geq");
+
+  bool seedRandom(wstring* out, const wstring* in, Interpreter&, unsigned) {
+    signed seed;
+    if (in->empty())
+      seed = time(0);
+    else if (!parseInteger(seed, *in)) {
+      wcerr << L"Invalid integer for seed-random: " << *in << endl;
+      return false;
+    }
+
+    srand(seed);
+    out->clear();
+    return true;
+  }
+
+  bool random(wstring* out, const wstring* in, Interpreter&, unsigned) {
+    signed max = INT_MAX;
+    if (!in->empty() && (!parseInteger(max, *in) || max <= 0)) {
+      wcerr << L"Invalid integer for random: " << *in << endl;
+      return false;
+    }
+
+    *out = intToStr(rand() % max);
+    return true;
+  }
+
+  static GlobalBinding<TFunctionParser<1,1,seedRandom> >
+  _seedRandom(L"seed-random");
+  static GlobalBinding<TFunctionParser<1,1,random> >
+  _random(L"random");
 }
