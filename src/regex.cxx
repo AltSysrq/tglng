@@ -108,6 +108,7 @@ namespace tglng {
   unsigned Regex::groupCount() const { return 0; }
   void Regex::group(wstring&, unsigned) const {}
   void Regex::tail(wstring&) const {}
+  void Regex::head(wstring&) const {}
 #endif /* NONE */
 
 #if TGLNG_REGEX_LEVEL == TGLNG_REGEX_POSIX
