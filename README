@@ -31,7 +31,7 @@ SYNTAX
 ------
 TglNG has no definite syntax; rather, each command defines how the characters
 which follow it are interpreted. The higher-level lexical behaviour is defined
-by the current parsing mode and the state of the *long mode* flag, as well as
+by the current parsing mode and the state of the _<<LongMode>>_ flag, as well as
 the escape character.
 
 Verbatim Parsing
@@ -57,17 +57,18 @@ Once a command is looked up, control over parsing is handed to the command
 parser. Parsing resumes where the command left off. It is an error if the
 command cannot be found.
 
+[[LongMode,long mode]]
 Long Mode
 ~~~~~~~~~
-When the *long mode* flag is set, some behaviours change. Whenever a command is
-to be parsed, any alphabetic characters result in parsing the
+When the _<<LongMode>>_ flag is set, some behaviours change. Whenever a command
+is to be parsed, any alphabetic characters result in parsing the
 _<<long-mode-cmd>>_ command. In any case where a command uses a `#` as a
 delimiter, whitespace or any parenthesis-like character will also be accepted.
 
 Long mode is intended for scripting, where readability is more important than
 conciseness, and where most commands do not have short names.
 
-The *long mode* flag can be set with the _<<long-mode>>_ command, and cleared
+The _<<LongMode>>_ flag can be set with the _<<long-mode>>_ command, and cleared
 with the _<<short-mode>>_ command.
 
 DATA TYPES
@@ -166,8 +167,8 @@ A sentinel-terminated string consists of all characters from the first
 character considered (which is included) to the specified sentinel character
 (which is not included); the resulting string must be non-empty. The sentinel
 is consumed by the argument, so it is not included in further parsing. If the
-sentinel is `#` and the *long mode* flag is set, any whitespace character will
-be considered a sentinel as well.
+sentinel is `#` and the _<<LongMode>>_ flag is set, any whitespace character
+will be considered a sentinel as well.
 
 [[NSS,NSS]]
 NSS: Non-Section String
@@ -289,7 +290,7 @@ for example.
 Commands which do not define functional arity are not functions. Commands which
 only define functional arity used the _<<Standard-Function-Syntax>>_.
 
-Unless otherwise noted, examples are in *command mode* with the *long mode*
+Unless otherwise noted, examples are in *command mode* with the _<<LongMode>>_
 flag clear. Characters to the right are not part of the code, but indicate
 output of the commands to the left.
 
@@ -378,14 +379,15 @@ Examples::
 long-mode
 ^^^^^^^^^
 Parsing Side-Effects::
-  Sets the *long mode* flag in the interpreter, then parses commands in command
-  parsing mode until parsing stops. The *long mode* flag is then restored.
+  Sets the _<<LongMode>>_ flag in the interpreter, then parses commands in
+  command parsing mode until parsing stops. The _<<LongMode>>_ flag is then
+  restored.
 Side-Effects::
   The parsed command chain is executed.
 Result::
   The result of executing the command chain.
 Remarks::
-  Using *long mode* makes the language significantly more verbose, but also
+  Using _<<LongMode>>_ makes the language significantly more verbose, but also
   much more readable. It is intended for use by configuration and extension
   scripts.
 
@@ -406,7 +408,7 @@ Result::
 Remarks::
   Before parsing _command-name_, the parsing offset is backed up so that the
   command will see the last character of _command-name_ as its command
-  character. This command is used in *long mode* to parse and look up command
+  character. This command is used in _<<LongMode>>_ to parse and look up command
   names.
 
 [[no-op,no-op]]
@@ -494,8 +496,8 @@ STRING
 short-mode
 ^^^^^^^^^^
 Parsing Side-Effects::
-  Clears the *long mode* flag in the interpreter, then parses commands in
-  command parsing mode until parsing stops. The *long mode* flag is then
+  Clears the _<<LongMode>>_ flag in the interpreter, then parses commands in
+  command parsing mode until parsing stops. The _<<LongMode>>_ flag is then
   restored.
 Side-Effects::
   The parsed command chain is executed.
@@ -1013,9 +1015,9 @@ Side-Effects::
 Result::
   A _<<Boolean>>_ indicating whether _string_ matches _pattern_.
 Remarks::
-  If _delimiter_ is `#`, then the parsing of _pattern_ is affected by *long
-  mode*. _pattern_ is compiled at *parse-time*, so any syntax errors are
-  discovered before the program runs. There is no way to embed _delimiter_
+  If _delimiter_ is `#`, then the parsing of _pattern_ is affected by
+  _<<LongMode>>_. _pattern_ is compiled at *parse-time*, so any syntax errors
+  are discovered before the program runs. There is no way to embed _delimiter_
   within _pattern_.
 Example::
 ----------------
@@ -1087,7 +1089,7 @@ Result::
   result of _string_ by evaluating _replacement_, registers having been set
   before evaluation of _replacement_ as per _<<rx-match-inline>>_.
 Remarks::
-  If _delimiter_ is `#`, _pattern_ is affected by *long mode* (ie, in can
+  If _delimiter_ is `#`, _pattern_ is affected by _<<LongMode>>_ (ie, in can
   terminate on a number of undesirable characters). There is no way to embed
   _delimiter_ within _pattern_ (other than numeric escape codes).
 Example::
@@ -1135,9 +1137,10 @@ Result::
   The results of each execution of _body_ are concatenated and returned.
 Remarks::
   _preprocessor_ defaults to _<<default-tokeniser-pre>>_ and _tokeniser_ to
-  _<<default-tokeniser>>_. The # before _tokeniser_ is not affected by *long
-  mode*. The presence of _options_ precludes the use of the ``?'' syntax. The
-  ``+'' or ``-'' before _options_ is implicitly prepended to that string.
+  _<<default-tokeniser>>_. The # before _tokeniser_ is not affected by
+  _<<LongMode>>_. The presence of _options_ precludes the use of the ``?''
+  syntax. The ``+'' or ``-'' before _options_ is implicitly prepended to that
+  string.
 Example::
 ----------------
 ekv{foo bar baz quux}[`rk -> `rv
@@ -1278,7 +1281,7 @@ the leading sign, and just set predefined options. `S` is equivalent to
 defaults, and `_` clears all parameters (sets them to false or empty).
 
 If a `#` is encountered where a parameter was expected, characters up to the
-next `#` are read (this is not affected by *long mode*), and that string,
+next `#` are read (this is not affected by _<<LongMode>>_), and that string,
 prepended with ``tokfmt-'', is used to look up a (1 <- 0) function of that
 name. The result of the function is parsed for more parameters.
 
