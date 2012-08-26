@@ -1160,7 +1160,7 @@ Result::
 Example::
 ----------------
 [(`E{foo bar baz}|)
-]
+`]
 
 (foo)
 (bar)
