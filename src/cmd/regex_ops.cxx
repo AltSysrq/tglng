@@ -359,5 +359,5 @@ namespace tglng {
   };
 
   static GlobalBinding<RxReplaceInlineParser>
-  _rxReplaceInline(L"rx-replace-inline");
+  _rxReplaceInline(L"rx-repl-inline");
 }

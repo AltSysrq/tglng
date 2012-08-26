@@ -1092,7 +1092,7 @@ Remarks::
   _delimiter_ within _pattern_ (other than numeric escape codes).
 Example::
 ----------------
-S/%([a-zA-Z+])%/2[<<`r1>>`]{%%%foo% %bar% %baz%}
+S/%([a-zA-Z]+)%/2[<<`r1>>`]{%%%foo% %bar% %baz%}
 
 %%<<foo>> <<bar>> %baz%
 ----------------

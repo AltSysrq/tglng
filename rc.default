@@ -48,6 +48,7 @@ ensemble-bind string-ops str-tolisp     I
 ensemble-bind string-ops str-tocobol    X
 
 bind rx-match-inline R
+bind rx-repl-inline  S
 
 ensemble-new secondary-commands
 bind secondary-commands x
