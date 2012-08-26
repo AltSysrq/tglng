@@ -27,6 +27,20 @@ eventually change to something more sensible.
 
 Any error messages are printed to standard error.
 
+Intended Usage
+~~~~~~~~~~~~~~
+As a necessity of being flexible and allowing scripting, TglNG is a
+Turing-complete dynamic programming language, which can be quite readable in
+_<<LongMode>>_. Despite this, _do not use it for general-purpose
+programming_. Both the language and implementation were designed with
+simplicity and conciseness in mind; the syntax has many quirks, and performance
+is rather low.
+
+It may be possible to use TglNG for very basic dynamic CGI pages. Don't use it
+for anything complex --- that would be _almost_ as bad as using PHP. (No
+instructions are included for how to do this; if you can figure it out, you
+probably can also understand the implications.)
+
 SYNTAX
 ------
 TglNG has no definite syntax; rather, each command defines how the characters
