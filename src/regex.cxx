@@ -200,25 +200,32 @@ namespace tglng {
   }
 
   unsigned Regex::groupCount() const {
-    unsigned cnt = 0;
-    while (cnt < sizeof(data.matches)/sizeof(data.matches[0]) &&
-           -1 != data.matches[cnt].rm_so)
-      ++cnt;
-    return cnt;
+    //Elements in the middle may be unmatched if that particular group was
+    //excluded, so search for the last group.
+    unsigned last;
+    for (unsigned i = 0; i < sizeof(data.matches)/sizeof(data.matches[0]); ++i)
+      if (-1 != data.matches[i].rm_so)
+        last = i;
+
+    return last+1;
   }
 
-  void Regex::group(wstring& out, unsigned ix) const {
-    out.assign(data.rawInput, data.matches[ix].rm_so,
-               data.matches[ix].rm_eo - data.matches[ix].rm_so);
+  void Regex::group(wstring& dst, unsigned ix) const {
+    //Indices may be negative if this group didn't match
+    if (data.matches[ix].rm_so == -1)
+      dst.clear();
+    else
+      dst.assign(data.rawInput, data.matches[ix].rm_so,
+                 data.matches[ix].rm_eo - data.matches[ix].rm_so);
   }
 
-  void Regex::tail(wstring& out) const {
-    out.assign(data.rawInput, data.inputOffset,
+  void Regex::tail(wstring& dst) const {
+    dst.assign(data.rawInput, data.inputOffset,
                data.rawInput.size() - data.inputOffset);
   }
 
-  void Regex::head(wstring& out) const {
-    out.assign(data.rawInput, data.headBegin,
+  void Regex::head(wstring& dst) const {
+    dst.assign(data.rawInput, data.headBegin,
                data.headEnd - data.headBegin);
   }
 #endif /* POSIX */
