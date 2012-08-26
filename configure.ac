@@ -18,6 +18,7 @@ AC_PROG_CXX
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h unistd.h glob.h regex.h pcre.h])
 AC_SEARCH_LIBS([pcre_compile], [pcre])
+AC_SEARCH_LIBS([pcre16_compile], [pcre pcre16])
 AC_CHECK_FUNCS([pcre16_compile], [
   AC_DEFINE([PCRE_SUPPORTS_16_BIT], [1],
             [Indicates that PCRE supports 16-bit strings])])
