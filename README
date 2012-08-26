@@ -1787,6 +1787,45 @@ write-binary
 ^^^^^^^^^^^^
 Like _<<write>>_, but in binary mode.
 
+DEFAULT CONFIGURATION
+---------------------
+Besides setting default **short name**s for builtin commands, the default
+configuration also creates a number of ensembles (see _<<ensemble-new>>_) and
+user functions.
+
+[width="70%",options="header"]
+.Ensembles created by default configuration
+|===============================================================================
+| Short Name | Command Name
+| s          | string-ops
+| x          | secondary-commands
+| xn         | secondary-numeric-ops
+| xo         | other-commands
+|===============================================================================
+
+Commands
+~~~~~~~~
+[[tokfmt-csv,tokfmt-csv]]
+tokfmt-csv
+^^^^^^^^^^
+Functional:: (1 <- 0)
+Result:: A configuration for the default tokeniser which allows it to work with
+most CSV files.
+
+[[tokfmt-json,tokfmt-json]]
+tokfmt-json
+^^^^^^^^^^^
+Functional:: (1 <- 0)
+Result:: A configuration for the default tokeniser which allows it to parse
+JSON data.
+
+[[tokfmt-tcl,tokfmt-tcl]]
+tokfmt-tcl
+^^^^^^^^^^
+Functional:: (1 <- 0)
+Result:: A configuration for the default tokeniser which allows it to parse Tcl
+lists (and dicts).
+
 FILES
 -----
 TglNG currently does not use any files. It will someday.
