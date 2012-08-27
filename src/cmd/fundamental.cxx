@@ -203,4 +203,20 @@ namespace tglng {
   };
 
   static GlobalBinding<UnaryCommandParser<Ignore> > _ignore(L"ignore");
+
+  namespace {
+    bool error(wstring*, const wstring* in, Interpreter&, unsigned) {
+      wcerr << L"tglng: error: user: " << *in << endl;
+      return false;
+    }
+
+    bool warn(wstring* out, const wstring* in, Interpreter&, unsigned) {
+      wcerr << L"tglng: warn: user: " << *in << endl;
+      out->clear();
+      return true;
+    }
+
+    static GlobalBinding<TFunctionParser<1,1,error> > _error(L"error");
+    static GlobalBinding<TFunctionParser<1,1,warn > > _warn (L"warn" );
+  }
 }

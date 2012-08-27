@@ -334,6 +334,15 @@ Examples::
 #bind#num-add## #1 1 { } #1 2       2 3
 ----------------
 
+[[error,error]]
+error
+^^^^^
+Functional:: (0 <- message)
+Side-Effects::
+  Prints _message_ to standard error, then kills the program.
+Result::
+  There is no result, since this function never returns.
+
 
 [[ensemble-bind,ensemble-bind]]
 ensemble-bind
@@ -540,6 +549,15 @@ Result::
   A one-character string containing the command character.
 Remarks::
   The self-insert command is only really useful internally to TglNG.
+
+[[warn,warn]]
+warn
+^^^^
+Functional:: (empty <- message)
+Side-Effects::
+  Prints _message_ to standard error.
+Result::
+  The empty string.
 
 Registers
 ~~~~~~~~~
