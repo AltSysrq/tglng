@@ -148,12 +148,15 @@ namespace tglng {
 
       //Clamp indices
       if (ib < 0) ib = 0;
-      if (ib > (signed)str.size()) ib = str.size()-1;
+      if (ib > (signed)str.size()) ib = str.size();
       if (ie < ib) ie = ib;
-      if (ie > (signed)str.size()) ie = str.size()-1;
+      if (ie > (signed)str.size()) ie = str.size();
 
       //OK
-      out = str.substr(ib, ie-ib);
+      if (ib < (signed)str.size())
+        out = str.substr(ib, ie-ib);
+      else
+        out.clear();
       return true;
     }
   };
