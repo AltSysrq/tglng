@@ -4,6 +4,8 @@
 
 #include <string>
 #include <memory>
+#include <vector>
+#include <utility>
 
 #include "../command.hxx"
 #include "../argument.hxx"
@@ -394,4 +396,106 @@ namespace tglng {
   };
 
   static GlobalBinding<WhileParser> _while(L"while");
+
+  class Case: public Command {
+    auto_ptr<Command> test, key;
+    vector<pair<Command*,Command*> > entries;
+
+  public:
+    Case(Command* left,
+         auto_ptr<Command>& test_,
+         auto_ptr<Command>& key_,
+         const vector<pair<Command*,Command*> > entries_)
+    : Command(left), test(test_), key(key_), entries(entries_)
+    { }
+
+    virtual ~Case() {
+      for (unsigned i = 0; i < entries.size(); ++i) {
+        delete entries[i].first;
+        delete entries[i].second;
+      }
+    }
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      bool hasTest = !!test.get();
+      bool hasKey  = !!key.get();
+      Function ftest;
+      if (hasTest) {
+        wstring stest;
+        if (!interp.exec(stest, test.get()))
+          return false;
+
+        if (!Function::get(ftest, interp, stest, 1, hasKey? 2 : 1))
+          return false;
+      }
+
+      wstring skey;
+      if (!interp.exec(skey, key.get()))
+        return false;
+
+      //OK, start searching entries
+      for (unsigned i = 0; i < entries.size(); ++i) {
+        wstring value;
+        if (!interp.exec(value, entries[i].first))
+          return false;
+
+        if (hasTest) {
+          wstring in[2];
+          in[0] = value;
+          in[1] = skey;
+          if (!ftest.exec(&value, in, interp, ftest.parm))
+            return false;
+        }
+
+        if (parseBool(value))
+          //Found matching entry
+          return interp.exec(dst, entries[i].second);
+      }
+
+      //Nothing matched
+      dst.clear();
+      return true;
+    }
+  };
+
+  class CaseParser: public CommandParser {
+  public:
+    virtual ParseResult parse(Interpreter& interp, Command*& out,
+                              const wstring& text, unsigned& offset) {
+      auto_ptr<Command> test, key, value, result;
+      vector<pair<Command*,Command*> > entries;
+      bool done = false;
+      ArgumentParser a(interp, text, offset, out);
+
+      //Parse leading portion
+      if (!a[a.h(),
+             (a.x(L':') |
+              (a.a(test), a.x(L':') | (a.a(key), a.x(L':')))),
+             a.x(L'{')])
+        goto error;
+
+      //Parse the remainder
+      while (!done) {
+        if (!a[a.x(done, L'}') | (a.a(value), a.a(result))])
+          goto error;
+
+        if (!done)
+          entries.push_back(make_pair(value.release(), result.release()));
+      }
+
+      //OK
+      out = new Case(out, test, key, entries);
+      return ContinueParsing;
+
+      error:
+      //Free any entries which were allocated
+      for (unsigned i = 0; i < entries.size(); ++i) {
+        delete entries[i].first;
+        delete entries[i].second;
+      }
+      return ParseError;
+    }
+  };
+
+  static GlobalBinding<CaseParser> _case(L"case");
 }

@@ -1153,6 +1153,48 @@ S/%([a-zA-Z]+)%/2[<<`r1>>`]{%%%foo% %bar% %baz%}
 
 Control Structures
 ~~~~~~~~~~~~~~~~~~
+[[case,case]]
+case
+^^^^
+Arguments::
+  * Optional _<<ART>>_: _test_ (function: (matches? <- _value_ _key_))
+  * Optional _<<ART>>_: _key_
+  * The character `:'
+  * Sequence of the following, enclosed in braces:
+  ** _<<ART>>_: _value_
+  ** _<<ART>>_: _result_
+Side-Effects::
+  Evaluates _key_. Then, evaluates _value_, followed by _test_(_value_,_key_)
+  until _test_ returns a true _<<Boolean>>_. If _test_ was not specified, the
+  result of each _value_ is used directly. If _key_ is not specified but _test_
+  is, _test_ is called with only one argument. Once a _value_ test is true,
+  evaluates the paired _result_.
+Result::
+  The _result_ from the first matching _value_, or the empty string if nothing
+  matched.
+Example::
+----------------
+#long-mode#
+let some-value = 42
+case some-value {num-equ}: {
+  0 {Zero}
+  1 {Singular}
+  2 {Plural}
+  42 {The Answer to the Ultimate Question}
+}
+{
+}
+case: {
+  = some-value random() {Rarely happens}
+  !some-value           {some-value is zero}
+  > some-value 9        {some-value has two or more digits}
+}
+
+
+The Answer to the Ultimate Question
+some-value has two or more digits
+----------------
+
 [[false-coalesce,false-coalesce]]
 false-coalesce
 ^^^^^^^^^^^^^^
