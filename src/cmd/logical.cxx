@@ -8,6 +8,7 @@
 #include "../command.hxx"
 #include "../argument.hxx"
 #include "../interp.hxx"
+#include "basic_parsers.hxx"
 #include "../common.hxx"
 
 using namespace std;
@@ -41,18 +42,7 @@ namespace tglng {
   };
 
   template<typename Logic>
-  class LogicalParser: public CommandParser {
-  public:
-    virtual ParseResult parse(Interpreter& interp, Command*& out,
-                              const wstring& text,
-                              unsigned& offset) {
-      auto_ptr<Command> lhs, rhs;
-      ArgumentParser a(interp, text, offset, out);
-      if (!a[a.h(), a.a(lhs), a.a(rhs)]) return ParseError;
-
-      out = new LogicalCommand<Logic>(out, lhs, rhs);
-      return ContinueParsing;
-    }
+  class LogicalParser: public BinaryCommandParser<LogicalCommand<Logic> > {
   };
 
   struct LogicalAnd {
@@ -88,19 +78,6 @@ namespace tglng {
     }
   };
 
-  class LogicalNotParser: public CommandParser {
-  public:
-    virtual ParseResult parse(Interpreter& interp, Command*& out,
-                              const wstring& text,
-                              unsigned& offset) {
-      auto_ptr<Command> sub;
-      ArgumentParser a(interp, text, offset, out);
-      if (!a[a.h(), a.a(sub)]) return ParseError;
-
-      out = new LogicalNot(out, sub);
-      return ContinueParsing;
-    }
-  };
-
-  static GlobalBinding<LogicalNotParser> _notParser(L"logical-not");
+  static GlobalBinding<UnaryCommandParser<LogicalNot> >
+  _notParser(L"logical-not");
 }
