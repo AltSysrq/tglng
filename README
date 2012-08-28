@@ -1908,6 +1908,30 @@ write-binary
 ^^^^^^^^^^^^
 Like _<<write>>_, but in binary mode.
 
+External Commands & Environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[[getenv,getenv]]
+getenv
+^^^^^^
+Functional:: (value exists <- key)
+Result::
+  _value_ is the current value of the environment variable named _key_, or the
+  empty string if it does not exist. _exists_ is set to a _<<Boolean>>_
+  indicating whether there actually is a command named _key_.
+
+[[setenv,setenv]]
+setenv
+^^^^^^
+Functional:: (empty <- key value)
+Side-Effects::
+  Sets the environment variable named _key_ to _value_. This affects
+  _<<getenv>>_ and the environment inherited by external commands.
+Result:: The empty string.
+Remarks::
+  While TglNG supports (but currently does not use) multiple, separate
+  interpreters, _this command will affect *everything* within the same TglNG
+  instance_.
+
 DEFAULT CONFIGURATION
 ---------------------
 Besides setting default **short name**s for builtin commands, the default

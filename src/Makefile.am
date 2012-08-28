@@ -23,4 +23,5 @@ tglng_SOURCES = \
  cmd/list.cxx \
  cmd/variable.cxx \
  cmd/fs.cxx \
- cmd/regex_ops.cxx
+ cmd/regex_ops.cxx \
+ cmd/external.cxx
