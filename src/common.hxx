@@ -2,6 +2,7 @@
 #define COMMON_HXX_
 
 #include <string>
+#include <vector>
 
 //Exit codes (other than EXIT_SUCCESS)
 #define EXIT_PARSE_ERROR_IN_USER_LIBRARY 1
@@ -44,6 +45,34 @@ namespace tglng {
    * @return The string representation of the integer.
    */
   std::wstring intToStr(signed);
+
+  /**
+   * Converts a wstring into a narrow, NTBS stored within the given vector.
+   *
+   * Returns whether conversion succeeded.
+   */
+  bool wstrtontbs(std::vector<char>&, const std::wstring&);
+
+  /**
+   * Converts a wstring into a narrow string.
+   *
+   * Returns whether conversion succeeded.
+   */
+  bool wstrtostr(std::string&, const std::wstring&);
+
+  /**
+   * Converts a narrow NTBS into a wstring.
+   *
+   * Returns whether conversion succeeded.
+   */
+  bool ntbstowstr(std::wstring&, const char*);
+
+  /**
+   * Converts a string into a wstring.
+   *
+   * Returns whether conversion succeeded.
+   */
+  bool strtowstr(std::wstring&, const std::string&);
 }
 
 #endif /* COMMON_HXX_ */

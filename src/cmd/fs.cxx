@@ -4,8 +4,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <locale>
-#include <clocale>
 #include <string>
 #include <cstring>
 #include <cerrno>
@@ -41,44 +39,22 @@ namespace tglng {
 
     out->clear();
 
-    locale theLocale;
-
     //Transcode in[0] to a narrow string
-    typedef codecvt<wchar_t, char, mbstate_t> converter_t;
-    const converter_t& converter =
-      use_facet<converter_t>(theLocale);
-    vector<char> pattern(in->size() * converter.max_length() + 1);
-    mbstate_t mbstate;
-    const wchar_t* from_next;
-    char* end;
-    converter_t::result conversionResult =
-      converter.out(mbstate, in->data(), in->data() + in->size(),
-                    from_next, &pattern[0], &pattern[0] + pattern.size() - 1,
-                    end);
-    if (conversionResult != converter_t::ok) {
+    vector<char> pattern;
+    if (!wstrtontbs(pattern, in[0])) {
       wcerr << L"Could not convert glob pattern to narrow string: "
             << *in << endl;
       return false;
     }
-
-    //Ensure it is NUL-terminated
-    *end = 0;
 
     //Perform the glob
     //If it fails, just return an empty list (*out is already empty);
     //otherwise, convert to a list.
     if (!glob(&pattern[0], GLOB_BRACE|GLOB_TILDE, NULL, &results)) {
       for (unsigned i = 0; i < results.gl_pathc; ++i) {
+        wstring name;
         //Convert the filename back to a wide string
-        vector<wchar_t> str(strlen(results.gl_pathv[i]));
-        const char* nfrom_next;
-        wchar_t* wend;
-        mbstate = mbstate_t();
-        conversionResult =
-          converter.in(mbstate, results.gl_pathv[i],
-                       results.gl_pathv[i] + strlen(results.gl_pathv[i]),
-                       nfrom_next, &str[0], &str[0] + str.size(), wend);
-        if (conversionResult != converter_t::ok) {
+        if (!ntbstowstr(name, results.gl_pathv[i])) {
           //Print a warning about this one
           cerr << "WARN: Could not convert narrow filename to wide string: "
                << results.gl_pathv[i] << endl;
@@ -86,7 +62,7 @@ namespace tglng {
         }
 
         //OK, add to the list
-        list::lappend(*out, wstring(&str[0], wend));
+        list::lappend(*out, name);
       }
 
       globfree(&results);
@@ -107,29 +83,11 @@ namespace tglng {
    * false.
    */
   static bool wstrtofn(vector<char>& dst, const wstring& src) {
-    typedef codecvt<wchar_t, char, mbstate_t> converter_t;
-    locale theLocale;
-    const converter_t& converter =
-      use_facet<converter_t>(theLocale);
-
-    dst.resize(src.size() * converter.max_length() + 1);
-    mbstate_t state;
-    const wchar_t* from_next;
-    char* end;
-    converter_t::result result =
-      converter.out(state, src.data(), src.data() + src.size(),
-                    from_next, &dst[0], &dst[0] + dst.size() - 1,
-                    end);
-    if (result != converter_t::ok) {
+    bool success = wstrtontbs(dst, src);
+    if (!success)
       wcerr << L"Could not convert filename to narrow string: "
             << src << endl;
-      return false;
-    }
-
-    //NUL-terminate
-    *end = 0;
-
-    return true;
+    return success;
   }
 
   static void blitstr(wstring& dst, const wstring& src) {
