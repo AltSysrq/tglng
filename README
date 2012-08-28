@@ -317,7 +317,6 @@ bind commands take no action at *run-time*.
 
 Fundamental
 ~~~~~~~~~~~
-
 [[bind,bind]]
 bind
 ^^^^
@@ -333,6 +332,18 @@ Examples::
 #bind#num-neq#\ \1 1 { } \1 2       1 0
 #bind#num-add## #1 1 { } #1 2       2 3
 ----------------
+
+[[character,character]]
+character
+^^^^^^^^^
+Functional:: (char <- code)
+Result:: The character represented by Unicode codepoint _code_.
+
+[[character-code,character-code]]
+character-code
+^^^^^^^^^^^^^^
+Functional:: (code <- char)
+Result:: The integer Unicode codepoint for the first character in _char_.
 
 [[error,error]]
 error
@@ -374,6 +385,17 @@ Remarks::
   An ensemble is a command which has a single _<<CHR>>_ argument, which it uses
   to look up what command to run; it is essentially a secondary short-name
   namespace. <<BindDisclaimer>>
+
+[[eval,eval]]
+eval
+^^^^
+Arguments::
+  * _<<SEC>>_: _body_
+Functional:: (1 <- 1)
+Side-Effects::
+  Parses and evaluates the result of executing _body_ *at runtime*.
+Result::
+  The result of executing the result of _body_.
 
 [[ignore,ignore]]
 ignore

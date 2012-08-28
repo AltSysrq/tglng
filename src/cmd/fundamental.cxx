@@ -4,6 +4,7 @@
 
 #include <string>
 #include <map>
+#include <cstdlib>
 
 #include "fundamental.hxx"
 #include "../command.hxx"
@@ -216,7 +217,77 @@ namespace tglng {
       return true;
     }
 
+    bool character(wstring* out, const wstring* in,
+                   Interpreter& interp, unsigned) {
+      signed code;
+      if (!parseInteger(code, *in)) {
+        wcerr << L"Invalid integer for character: " << *in << endl;
+        return false;
+      }
+
+      out->assign(1, (wchar_t)code);
+      return true;
+    }
+
+    bool characterCode(wstring* out, const wstring* in,
+                       Interpreter& interp, unsigned) {
+      if (in->empty()) {
+        wcerr << L"Empty string to character-code" << endl;
+        return false;
+      }
+
+      *out = intToStr((signed)(*in)[0]);
+      return true;
+    }
+
     static GlobalBinding<TFunctionParser<1,1,error> > _error(L"error");
     static GlobalBinding<TFunctionParser<1,1,warn > > _warn (L"warn" );
+    static GlobalBinding<TFunctionParser<1,1,character> >
+    _character(L"character");
+    static GlobalBinding<TFunctionParser<1,1,characterCode> >
+    _characterCode(L"character-code");
   }
+
+  class Eval: public UnaryCommand {
+  public:
+    Eval(Command* left, auto_ptr<Command>& sub)
+    : UnaryCommand(left, sub) {}
+
+    virtual bool exec(wstring& dst, Interpreter& interp) {
+      wstring code;
+      if (!interp.exec(code, sub.get())) return false;
+
+      auto_ptr<Command> dynamic;
+      Command* out = NULL;
+      unsigned offset = 0;
+      switch (interp.parseAll(out, code, offset,
+                              Interpreter::ParseModeCommand)) {
+      case StopEndOfInput:
+        break; //OK
+
+      case StopCloseParen:
+      case StopCloseBracket:
+      case StopCloseBrace:
+        interp.error(L"Unexpected closing parenthesis.", code, offset);
+        //Fall through
+
+      case ParseError:
+        wcerr << L"Parsing dynamic code failed." << endl;
+        delete out;
+        return false;
+
+      case ContinueParsing:
+      default:
+        //Should never happen
+        wcerr << __FILE__ << L":" << __LINE__ << L": "
+              << "Unexpected result from interp.parseAll" << endl;
+        abort();
+      }
+
+      dynamic.reset(out);
+      return interp.exec(dst, dynamic.get());
+    }
+  };
+
+  static GlobalBinding<UnaryCommandParser<Eval> > _eval(L"eval");
 }
