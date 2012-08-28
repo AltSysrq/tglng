@@ -230,7 +230,7 @@ namespace tglng {
     //Read all text to EOF (either real or UNIX)
     getline(in, text, L'\4');
 
-    if (in.fail()) {
+    if (in.fail() && !in.eof()) {
       cerr << "Error reading input stream: " << strerror(errno) << endl;
       return false;
     }
