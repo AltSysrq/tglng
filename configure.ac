@@ -48,7 +48,15 @@ dnl AC_FUNC_MALLOC
 dnl AC_FUNC_REALLOC
 AC_FUNC_FORK
 AC_TYPE_PID_T
-AC_CHECK_FUNCS([dup2 memmove memset strerror mkstemp glob])
+# Don't check for regcomp as suggested by autoscan; if regex.h exists, it is
+# generally safe to say that the functions defined within exist as well.
+AC_CHECK_FUNCS([dup2 memmove memset strerror mkstemp glob setenv setlocale])
+
+# AC_CHECK_HEADER_STDBOOL isn't necessary since we're using C++ which already
+# mandates bool
+
+# AC_FUNC_ERROR_AT_LINE isn't necessary since we don't actually use THAT
+# error() (it gets confused by Interpreter::error()).
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
