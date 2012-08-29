@@ -121,7 +121,7 @@ namespace tglng {
   }
 
   typedef codecvt<wchar_t, char, mbstate_t> converter_t;
-  bool wstrtontbs(vector<char>& dst, const wstring& src) {
+  bool wstrtontbs(vector<char>& dst, const wstring& src, const char** endOut) {
     locale theLocale;
     const converter_t& converter =
       use_facet<converter_t>(theLocale);
@@ -136,23 +136,26 @@ namespace tglng {
     if (result != converter_t::ok) return false;
 
     *end = 0;
+    if (endOut)
+      *endOut = end;
     return true;
   }
 
   bool wstrtostr(string& dst, const wstring& src) {
     vector<char> tmp;
-    if (!wstrtontbs(tmp, src)) return false;
+    const char* end;
+    if (!wstrtontbs(tmp, src, &end)) return false;
 
-    dst = &tmp[0];
+    dst.assign((const char*)&tmp[0], end);
     return true;
   }
 
-  bool ntbstowstr(wstring& dst, const char* src) {
+  bool ntbstowstr(wstring& dst, const char* src, const char* send) {
     locale theLocale;
     const converter_t& converter =
       use_facet<converter_t>(theLocale);
 
-    size_t len = strlen(src);
+    size_t len = send? send - src : strlen(src);
     vector<wchar_t> tmp(len);
     const char* from_next;
     wchar_t* end;
@@ -172,6 +175,6 @@ namespace tglng {
   }
 
   bool strtowstr(wstring& dst, const string& src) {
-    return ntbstowstr(dst, src.c_str());
+    return ntbstowstr(dst, src.data(), src.data() + src.size());
   }
 }

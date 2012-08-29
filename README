@@ -1910,6 +1910,26 @@ Like _<<write>>_, but in binary mode.
 
 External Commands & Environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[[exec,exec]]
+exec
+^^^^
+Functional:: (stdout status <- command stdin allow-failure)
+Side-Effects::
+  Executes _command_ using +_$SHELL_ -c+, with standard input taken from the
+  string _stdin_ (encoded according to the current locale). If _allow-failure_
+  is a false _<<Boolean>>_, exec fails if _command_ returns a non-zero exit
+  code.
+Result::
+  The standard output of the command is stored in _stdout_, after having been
+  decoded according to the current locale. The numeric exit code is stored into
+  _status_. (Note that _status_ will only be non-zero if _allow-failure_ is
+  specified as true.)
+Remarks::
+  This command assumes that input and output are *text*, and thus may have
+  surprising results or fail altogether if you try to work with binary data. If
+  you must, for some reason, pipe binary data, use the binary file commands to
+  read/write files, and use input redirection in your command.
+
 [[getenv,getenv]]
 getenv
 ^^^^^^
@@ -2013,7 +2033,8 @@ TglNG currently does not use any files. It will someday.
 
 ENVIRONMENT
 -----------
-TglNG currently does not use the environment. Someday it will.
+The _SHELL_ environment variable controls what TglNG uses to execute shell
+commands. If it is not set, ``/bin/sh'' is assumed.
 
 
 EXIT STATUS

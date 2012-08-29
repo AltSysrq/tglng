@@ -49,9 +49,13 @@ namespace tglng {
   /**
    * Converts a wstring into a narrow, NTBS stored within the given vector.
    *
+   * If end is non-NULL, a pointer to the "real" terminating NULL is written
+   * there.
+   *
    * Returns whether conversion succeeded.
    */
-  bool wstrtontbs(std::vector<char>&, const std::wstring&);
+  bool wstrtontbs(std::vector<char>&, const std::wstring&,
+                  const char** end = NULL);
 
   /**
    * Converts a wstring into a narrow string.
@@ -63,9 +67,12 @@ namespace tglng {
   /**
    * Converts a narrow NTBS into a wstring.
    *
+   * If end is non-NULL, the string is considered to end there instead of at
+   * the first NUL.
+   *
    * Returns whether conversion succeeded.
    */
-  bool ntbstowstr(std::wstring&, const char*);
+  bool ntbstowstr(std::wstring&, const char*, const char* end = NULL);
 
   /**
    * Converts a string into a wstring.
