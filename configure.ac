@@ -17,6 +17,8 @@ AC_PROG_CXX
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h unistd.h glob.h regex.h pcre.h])
+
+# Handle regex engine stuff
 AC_SEARCH_LIBS([pcre_compile], [pcre])
 AC_SEARCH_LIBS([pcre16_compile], [pcre pcre16])
 AC_CHECK_FUNCS([pcre16_compile], [
@@ -56,7 +58,7 @@ AC_CHECK_FUNCS([dup2 memmove memset strerror mkstemp glob setenv setlocale])
 # mandates bool
 
 # AC_FUNC_ERROR_AT_LINE isn't necessary since we don't actually use THAT
-# error() (it gets confused by Interpreter::error()).
+# error() (autoscan gets confused by Interpreter::error()).
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
