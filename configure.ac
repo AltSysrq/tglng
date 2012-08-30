@@ -16,7 +16,7 @@ AC_PROG_CXX
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h unistd.h glob.h regex.h pcre.h])
+AC_CHECK_HEADERS([fcntl.h unistd.h glob.h regex.h pcre.h getopt.h])
 
 # Handle regex engine stuff
 AC_SEARCH_LIBS([pcre_compile], [pcre])
@@ -52,7 +52,15 @@ AC_FUNC_FORK
 AC_TYPE_PID_T
 # Don't check for regcomp as suggested by autoscan; if regex.h exists, it is
 # generally safe to say that the functions defined within exist as well.
-AC_CHECK_FUNCS([dup2 memmove memset strerror mkstemp glob setenv setlocale])
+AC_CHECK_FUNCS([dup2 memmove memset strerror mkstemp getopt setenv setlocale],
+  [],
+  AC_MSG_ERROR([A required function could not be found.]))
+
+AC_CHECK_FUNCS([glob])
+
+AC_CHECK_FUNCS([getopt_long],
+  [AC_DEFINE([USE_GETOPT_LONG], [1], [Use getopt_long instead of getopt])],
+  [])
 
 # AC_CHECK_HEADER_STDBOOL isn't necessary since we're using C++ which already
 # mandates bool
