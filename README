@@ -12,10 +12,45 @@ tglng - Text Generation Language, the Next Generation
 
 SYNOPSIS
 --------
-tglng
+tglng [*OPTIONS*]...
 
 DESCRIPTION
 -----------
+Options
+~~~~~~~
+The *OPTIONS* on the command line may be any of the following, in any order,
+using the customary +getopt+ syntax. Long option names are only available on
+systems supporting +getopt_long+.
+
+`-h`, `-?`, `--help`::
+  Print usage statement and exit.
+`-f`, `--file` = _filename_::
+  Indicates that the caller of TglNG is operating on a file named
+  _filename_. This can be used to affect user configuration. By default, TglNG
+  will `chdir` into the directory which contains _filename_, unless
+  `--no-chdir` is specified.
+`-H`, `--no-chdir`::
+  Don't implicitly `chdir` due to `--file`.
+`-c`, `--config` = _configfile_::
+  Read from _configfile_ for user settings instead of `~/.tglng`. Multiple
+  occurrances of this option will result in each listed file being read in the
+  order specified.
+`-C`, `--no-system-config`::
+  Suppress implicit reading of system-wide configuration.
+`-e`, `--script` = _script_::
+  Execute _script_ for the primary code instead of reading from standard input.
+`-D` _register_ = _value_::
+  Assigns the register named by the single character _register_ to have the
+  value of _value_ before the execution of the first configuration input.
+`-d`, `--dry-run`::
+  Only parse the input (after executing all configuration).
+`-l`, `--locate-parse-error`::
+  If a parse error occurs, print the zero-based character offset of the
+  character in the main input which caused parsing to fail to standard
+  output. This is unaffected by `--dry-run`.
+
+Overview
+~~~~~~~~
 TglNG (pronounced ``tag-along'') is a compact ``programming language'' for
 ad-hoc, one-time programmatic text generation. Its job is to transform an input
 string (a ``program'') into the (more verbose) output string the user desires.
@@ -58,11 +93,12 @@ Literal Parsing
 ~~~~~~~~~~~~~~~
 In literal mode, each character *other than the escape character* evaluates to
 the _<<self-insert>>_ command. The escape character will cause the following
-character to be parsed as if in command mode.
+character to be parsed as if in command mode, except that another following
+espace character will result in a literal escape character.
 
 Command Parsing
 ~~~~~~~~~~~~~~~
-In command mode, each character is looked up in the interpreters short-command
+In command mode, each character is looked up in the interpreter's short-command
 table. That is, each character determines which command is parsed. The only
 exception is the current escape character, which is parsed as a command which
 evaluates to the empty string (_<<no-op>>_).
@@ -604,6 +640,7 @@ Side-Effects::
 
 write-reg
 ^^^^^^^^^
+Short Name:: @
 Arguments::
   * _<<CHR>>_: _register_
   * _<<ART>>_: _value_
@@ -1183,7 +1220,9 @@ Result::
 Remarks::
   If _delimiter_ is `#`, _pattern_ is affected by _<<LongMode>>_ (ie, in can
   terminate on a number of undesirable characters). There is no way to embed
-  _delimiter_ within _pattern_ (other than numeric escape codes).
+  _delimiter_ within _pattern_ (other than numeric escape codes). _pattern_ is
+  compiled at *parse-time*, so any syntax errors are discovered before the
+  program runs.
 Example::
 ----------------
 S/%([a-zA-Z]+)%/2[<<`r1>>`]{%%%foo% %bar% %baz%}
@@ -1216,7 +1255,7 @@ Example::
 ----------------
 #long-mode#
 let some-value = 42
-case some-value {num-equ}: {
+case {num-equ} some-value: {
   0 {Zero}
   1 {Singular}
   2 {Plural}
@@ -1730,6 +1769,8 @@ Result::
   The primary result of executing _fun_.
 
 [[defun,defun]]
+defun
+^^^^^
 Arguments::
   * _<<STS>>_(`#`): _long-name_
   * Optional: `:` _<<CHR>>_: _short-name_
@@ -1746,7 +1787,9 @@ each successive element of _invars_, using the empty string if not
 given. _body_ is then executed for the primary result. If _outvars_ is defined,
 the value of each register listed within is used as a secondary result. The
 values of *all* registers from before execution of the function is then
-restored.
+restored. (Though if the caller requested to capture outputs to registers,
+those registers are then modified to reflect the values of the secondary
+outputs.)
 
 [[lambda,lambda]]
 lambda
