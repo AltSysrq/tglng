@@ -122,7 +122,7 @@ namespace tglng {
     getline(input, str, eof[0]);
     blitstr(out[0], str);
 
-    if (!input.fail() && !input.eof())
+    if (!input.fail())
       out[1] = L"1";
     else
       out[1] = L"0";
