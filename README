@@ -2042,6 +2042,22 @@ Result::
   root. Note that passing ``.'' gives back ``.'', as that is, in fact, the
   directory containing the file of that name.
 
+[[ch-escape,ch-escape]]
+ch-escape
+^^^^^^^^^
+Functional:: (1 <- 1)
+Result::
+  The first token of the input argument preceded by a backslash, as extracted
+  by _<<default-tokeniser>>_ with escape sequences enabled.
+
+[[trim-trailing-lf,trim-trailing-lf]]
+trim-trailing-lf
+^^^^^^^^^^^^^^^^
+Functional:: (trimmed <- input)
+Result::
+  _input_ with a single trailing line feed trimmed from the end, if there was
+  one.
+
 [[sort,sort]]
 sort
 ^^^^

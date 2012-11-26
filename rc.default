@@ -62,6 +62,9 @@ ensemble-bind other-commands logical-xor r
 ensemble-bind secondary-commands lambda \
 bind lambda λ
 
+defun ch-escape(s) (
+  default-tokeniser([\`$s`], {+e}))
+
 defun tokfmt-csv {+_ld,t""e}
 defun tokfmt-tcl {+!t""e-b()}
 defun tokfmt-json {+!t""ed:d,-b()}
@@ -90,3 +93,8 @@ defun sort(ic) (
     list-flatten(list($l, $p, $r))
   )
 )
+
+defun trim-trailing-lf(s) (
+  str-ix 0
+    +0(if (= (str-ix -1 $s) (ch-escape({n})))
+     {-2} {-1}) $s)
