@@ -437,6 +437,8 @@ namespace tglng {
             }
 
             s += ch;
+            //Move back one since we increment ix after the switch
+            --ix;
           } break;
 
           case L'x':
@@ -485,11 +487,14 @@ namespace tglng {
             }
 
             s += ch;
+            //Move back one since we increment ix after the switch
+            --ix;
           } break;
 
           default:
-            s += out[0][ix++];
+            s += out[0][ix];
           } //end switch(wchar_t)
+          ++ix;
         } //end if (is backslash),
       } //end for (each character)
 
