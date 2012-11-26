@@ -630,6 +630,7 @@ Result::
 Remarks::
   This command fails if _register_ refers to an undefined register.
 
+[[unset-reg,unset-reg]]
 unset-reg
 ^^^^^^^^^
 Arguments::
@@ -638,6 +639,7 @@ Side-Effects::
   Sets the register named by _register_ to the undefined state. Nothing happens
   if _register_ is already undefined.
 
+[[write-reg,write-reg]
 write-reg
 ^^^^^^^^^
 Short Name:: @
