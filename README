@@ -2042,6 +2042,13 @@ Result::
   root. Note that passing ``.'' gives back ``.'', as that is, in fact, the
   directory containing the file of that name.
 
+[[pwd,pwd]]
+pwd
+^^^
+Functional:: (pwd <- void)
+Result::
+  The current working directory.
+
 [[ch-escape,ch-escape]]
 ch-escape
 ^^^^^^^^^
@@ -2057,6 +2064,13 @@ Functional:: (trimmed <- input)
 Result::
   _input_ with a single trailing line feed trimmed from the end, if there was
   one.
+
+[[list-reverse,list-reverse]]
+list-reverse
+^^^^^^^^^^^^
+Functional:: (tsil <- list)
+Result::
+  A list containing the same elements as _list_, but in reverse order.
 
 [[sort,sort]]
 sort
