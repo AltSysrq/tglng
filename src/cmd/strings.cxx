@@ -128,23 +128,22 @@ namespace tglng {
         return false;
       }
 
-      if (se.empty())
-        //Implicitly one character
-        ie = ib+1;
-      else {
+      if (!se.empty()) {
         if (!parseInteger(ie, se)) {
           wcerr << L"Invalid integer: " << se << endl;
           return false;
         }
-
-        //Add ib if in length mode
-        if (treatEndAsLength)
-          ie += ib;
       }
 
       //Negative indices are relative to the end (plus one for end)
       if (ib < 0) ib += str.size();
-      if (ie < 0) ie += str.size()+1;
+      if (se.empty())
+        //Implicitly one character
+        ie = ib+1;
+      else if (treatEndAsLength)
+        ie = ie+ib;
+      else if (ie < 0)
+        ie += str.size()+1;
 
       //Clamp indices
       if (ib < 0) ib = 0;
