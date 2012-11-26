@@ -2102,9 +2102,39 @@ Functional:: (1 <- 0)
 Result:: A configuration for the default tokeniser which allows it to parse Tcl
 lists (and dicts).
 
+STARTUP
+-------
+When tglng starts, it first reads the default system configuration. Currently,
+this is from +rc.default+ in the current directory. It will later be something
+more sensible.
+
+Besides the default configuration, the system file also runs the rest of the
+startup process. First, if a file named +.tglng+ exists under the user's home
+directory, it is read and evaluated.
+
+Then, for each directory from, but not including, `/` or `$HOME` (the former
+only if the current directory is not a descendant of `$HOME`) down to and
+including the current directory, tglng tries to read a file named +.tglng+. If
+succesful *and* that directory is listed in `~/.tglng_permitted`, its contents
+are evaluated. If it can be read but is not listed as permitted, and it is not
+listed in `~/.tglng_known`, a diagnostic regarding the directory is printed and
+the directory added to `~/.tglng_known`. In any case where it is not listed as
+permitted, the contents are discarded and not evaluated.
+
+Only add a directory to `~/.tglng_permitted` if you trust any scripts that may
+be present there. `.tglng` scripts present may do *anything* they please.
+
+Note that adding a directory to `~/.tglng_premitted` does *not* include its
+subdirectories.
+
 FILES
 -----
-TglNG currently does not use any files. It will someday.
+* `~/.tglng`
+  User configuration.
+* `~/.tglng_known`
+  List of known directories containing `.tglng` which will produce no warnings.
+* `~/.tglng_permitted`
+  List of directories under which `tglng` scripts will be evaluated.
 
 ENVIRONMENT
 -----------
