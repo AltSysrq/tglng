@@ -338,7 +338,7 @@ parsing; for commands invoked by short names, this is the short name itself,
 for example.
 
 Commands which do not define functional arity are not functions. Commands which
-only define functional arity used the _<<Standard-Function-Syntax>>_.
+only define functional arity use the _<<Standard-Function-Syntax>>_.
 
 Unless otherwise noted, examples are in *command mode* with the _<<LongMode>>_
 flag clear. Characters to the right are not part of the code, but indicate
