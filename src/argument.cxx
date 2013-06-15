@@ -19,6 +19,10 @@ using namespace std;
 namespace tglng {
   static const wstring sectionTypes(L"<>:|([{$");
 
+  Section::Section()
+  : left(NULL), right(NULL)
+  { }
+
   bool Section::exec(wstring& dst, Interpreter& interp) {
     wstring r;
     dst.clear();

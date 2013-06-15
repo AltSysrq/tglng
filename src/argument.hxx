@@ -74,6 +74,7 @@ namespace tglng {
   struct Section {
     Command* left, * right;
 
+    Section();
     bool exec(std::wstring& dst, Interpreter& interp);
   };
   /**
