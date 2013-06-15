@@ -572,6 +572,12 @@ Remarks::
   some cases, this may not be appropriated; for example, Turkish capitalisation
   rules will hinder programming. Using the ``C'' locale may have unexpected
   effects; it is not recommended.
+Bugs::
+  On systems with a non-GNU `libc` but which use GNU `libstdc++`, invoking this
+  command may crash the program. This occurs because GNU `libstdc++` does not
+  support using the C locale interface except on GNU `libc`. See
+  <<http://gcc.gnu.org/ml/libstdc++/2003-02/msg00345.html>>. Note that on such
+  systems, Unicode support may be problematic or non-existent.
 Example::
 ----------------
 #long-mode#
