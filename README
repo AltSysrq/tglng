@@ -1703,7 +1703,7 @@ Result::
 Remarks::
   This function requires a linear scan of the list. If _index_ is non-negative,
   this function performs (_index_+1) calls to the tokeniser; if it is negative,
-  an additional (list-len(_list)) operations are required. Therefore, iterating
+  an additional len(_list_) operations are required. Therefore, iterating
   over a list via its indices is an O(n²) operation.
 
 [[list-len,list-len]]
