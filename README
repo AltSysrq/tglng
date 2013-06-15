@@ -645,7 +645,7 @@ Side-Effects::
   Sets the register named by _register_ to the undefined state. Nothing happens
   if _register_ is already undefined.
 
-[[write-reg,write-reg]
+[[write-reg,write-reg]]
 write-reg
 ^^^^^^^^^
 Short Name:: @
