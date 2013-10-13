@@ -22,6 +22,7 @@
 #include "cmd/list.hxx"
 #include "command.hxx"
 #include "options.hxx"
+#include "startup.hxx"
 #include "common.hxx"
 
 using namespace std;
@@ -58,15 +59,7 @@ int main(int argc, const char*const* argv) {
 
   parseCmdlineArgs(argc, argv);
 
-  //Try to read from standard configuration file.
-  //TODO: Change this to something more sensible
-  {
-    wifstream in("rc.default");
-    if (!interp.exec(out, in, Interpreter::ParseModeCommand)) {
-      wcerr << L"Error reading user library." << endl;
-      return EXIT_EXEC_ERROR_IN_USER_LIBRARY;
-    }
-  }
+  startUp(interp);
 
   if (scriptInputs.empty())
     executePrimaryInput(interp, wcin);

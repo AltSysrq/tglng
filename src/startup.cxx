@@ -28,7 +28,7 @@ namespace tglng {
     if (0 == lastSlash || string::npos == lastSlash)
       return "";
 
-    return filename.substr(0, lastSlash-1);
+    return filename.substr(0, lastSlash);
   }
 
   static void chdirToFilename() {
@@ -86,7 +86,7 @@ namespace tglng {
 
     while (!directory.empty() && directory != root && directory != home) {
       string path = directory + "/.tglng";
-      if (access(path.c_str(), R_OK)) {
+      if (!access(path.c_str(), R_OK)) {
         if (permitted.count(directory)) {
           readConfig(interp, path);
         } else if (!known.count(directory)) {
