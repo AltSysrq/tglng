@@ -68,5 +68,5 @@ AC_CHECK_FUNCS([getopt_long],
 # AC_FUNC_ERROR_AT_LINE isn't necessary since we don't actually use THAT
 # error() (autoscan gets confused by Interpreter::error()).
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile])
 AC_OUTPUT
