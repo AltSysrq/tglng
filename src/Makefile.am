@@ -1,6 +1,9 @@
+AUTOMAKE_OPTIONS = subdir-objects
+AM_CXXFLAGS=-Wall
 bin_PROGRAMS = tglng
 tglng_SOURCES = \
  tglng.cxx \
+ options.cxx \
  interp.cxx \
  common.cxx \
  argument.cxx \
