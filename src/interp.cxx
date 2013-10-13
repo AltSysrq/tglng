@@ -16,6 +16,7 @@
 #include "command.hxx"
 #include "cmd/fundamental.hxx"
 #include "cmd/long_mode.hxx"
+#include "options.hxx"
 #include "common.hxx"
 
 using namespace std;
@@ -264,6 +265,13 @@ namespace tglng {
         context[i] = ' ';
     wcerr << L"  " << context << endl;
     wcerr << setw(2+where-contextStart+1) << L"^" << endl;
+
+    if (locateParseError) {
+      /* Unset, since we only print once */
+      locateParseError = false;
+
+      wcout << where << endl;
+    }
   }
 
   void Interpreter::bindGlobal(const wstring& name, CommandParser* parser) {
