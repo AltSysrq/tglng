@@ -199,9 +199,6 @@ Registers are not internally used by TglNG; all are only meaningful to the
 user. Any register may be read, written, or unset at any time, except that it
 is an error to read from an undefined (unset) register.
 
-Register values will eventually be preserved across executions, but currently
-they are not. All registers are initially undefined.
-
 STANDARD ARGUMENT FORMATS
 -------------------------
 While each command defines its own syntax, there are a number of argument types
