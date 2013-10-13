@@ -24,7 +24,7 @@
 using namespace std;
 using namespace tglng;
 
-static void parse_cmdline_args(unsigned, const char*const*);
+static void parseCmdlineArgs(unsigned, const char*const*);
 
 int main(int argc, const char*const* argv) {
   wstring out;
@@ -51,7 +51,7 @@ int main(int argc, const char*const* argv) {
     */
   }
 
-  parse_cmdline_args(argc, argv);
+  parseCmdlineArgs(argc, argv);
 
   //Try to read from standard configuration file.
   //TODO: Change this to something more sensible
@@ -73,9 +73,9 @@ int main(int argc, const char*const* argv) {
   }
 }
 
-static void print_usage(void);
+static void printUsage(bool);
 
-static void parse_cmdline_args(unsigned argc, const char*const* argv) {
+static void parseCmdlineArgs(unsigned argc, const char*const* argv) {
 #ifdef USE_GETOPT_LONG
   static const struct option long_options[] = {
     { "help", 0, NULL, 'h' },
@@ -106,11 +106,8 @@ static void parse_cmdline_args(unsigned argc, const char*const* argv) {
     case -1: break;
     case 'h':
     case '?':
-      print_usage();
-      if ('h' == cmdstat)
-        exit(0);
-      else
-        exit(EXIT_INCORRECT_USAGE);
+      printUsage('h' != cmdstat);
+      exit('h' == cmdstat? 0 : EXIT_INCORRECT_USAGE);
       break;
 
     case 'f':
@@ -177,10 +174,54 @@ static void parse_cmdline_args(unsigned argc, const char*const* argv) {
 
   if ((unsigned)optind != argc) {
     wcerr << L"Extraneous arguments after options" << endl;
-    print_usage();
+    printUsage(true);
     exit(EXIT_INCORRECT_USAGE);
   }
 }
 
-static void print_usage(void) {
+static void printUsage(bool error) {
+  (error? wcerr : wcout) <<
+    "Usage: tglng [OPTIONS...]\n"
+    "Possible options are listed below. Arguments mandatory for long options\n"
+    "are mandatory for the corresponding short options as well.\n"
+    "  -h, -?, --help\n"
+    "    Show this help message and exit.\n"
+    "  -f, --file=<filename>\n"
+    "    Indicates that the text produced by TglNG is expected to be added to\n"
+    "    a file named by <filename>. By default, TglNG will chdir() into the\n"
+    "    directory containing <filename>, unless --no-chdir is specified. It\n"
+    "    is also possible for user configuration to change based on the value\n"
+    "    of this option.\n"
+    "  -H, --no-chdir\n"
+    "    Suppress implicit chdir() into directory containing filename\n"
+    "    specified via --file.\n"
+    "  -c, --config=<file>\n"
+    "    Instead of reading user configuration from ~/.tglng, read it from\n"
+    "    <file>. This option may be specified multiple times; all listed\n"
+    "    files will be read for user configuration.\n"
+    "  -C, --no-system-config\n"
+    "    Suppress implicit reading of system-wide configuration. Note that\n"
+    "    quite a bit of TglNG functionality, including the handling of several\n"
+    "    command line arguments listed here, is implemented in the default\n"
+    "    system configuration.\n"
+    "  -e, --script=<file>\n"
+    "    Read primary program from <file> instead of standard input.\n"
+    "    Specifying this argument multiple times causes all listed files to\n"
+    "    be read and executed.\n"
+    "  -D, --define=<definition>        <definition> ::= X=str\n"
+    "    Specifies that register <X> will initially have value <str>. This is\n"
+    "    applied whenever the reset-registers command is executed.\n"
+    "  -d, --dry-run\n"
+    "    Do everything but execute the primary input. In the case of multiple\n"
+    "    files specified by --script, each listed file is parsed but not\n"
+    "    executed.\n"
+    "  -l, --locate-parse-error\n"
+    "    If a parse error occurs, print the zero-based character offset of\n"
+    "    the primary input where the error was encountered to standard\n"
+    "    output, in addition to writing information about the error to\n"
+    "    standard output.\n"
+    #ifndef USE_GETOPT_LONG
+    "\n(Long options are not available on your system.)"
+    #endif
+                         << endl;
 }
