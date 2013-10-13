@@ -656,6 +656,16 @@ Side-Effects::
   Evaluates _value_ and writes its result to the register named by
   _register_. If _register_ was undefined, it loses that condition.
 
+[[reset-registers,reset-registers]]
+reset-registers
+^^^^^^^^^^^^^^^
+Functional: (1 <- 0)
+Side-Effects::
+  Resets all registers to their initial state. That is, after this call, all
+  registers are undefined, except for those defined on the command-line.
+Result::
+  The empty string
+
 Mathematics
 ~~~~~~~~~~~
 [[num-add,num-add]]

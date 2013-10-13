@@ -9,6 +9,8 @@
 #include "registers.hxx"
 #include "../interp.hxx"
 #include "../argument.hxx"
+#include "../function.hxx"
+#include "../options.hxx"
 #include "../common.hxx"
 
 using namespace std;
@@ -92,9 +94,18 @@ namespace tglng {
     }
   };
 
+  bool resetRegisters(wstring* out, const wstring* in,
+                      Interpreter& interp, unsigned parm) {
+    interp.registers = initialRegisters;
+    *out = L"";
+    return true;
+  }
+
   static GlobalBinding<RegCmdParser<ReadRegister> >
-      _readRegParser(L"read-reg");
+  _readRegParser(L"read-reg");
   static GlobalBinding<RegCmdParser<UnsetRegister> >
-      _unsetRegParser(L"unset-reg");
+  _unsetRegParser(L"unset-reg");
   static GlobalBinding<WriteRegisterParser> _writeRegParser(L"write-reg");
+  static GlobalBinding<TFunctionParser<1, 1, resetRegisters> >
+  _resetRegisters(L"reset-registers");
 }

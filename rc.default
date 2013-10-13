@@ -159,3 +159,5 @@ for-each d $D (
     )
   )
 )
+
+reset-registers()
