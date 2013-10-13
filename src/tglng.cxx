@@ -12,12 +12,15 @@
 #include <locale>
 #include <exception>
 #include <stdexcept>
+#include <cerrno>
+#include <cstring>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
 
 #include "interp.hxx"
 #include "cmd/list.hxx"
+#include "command.hxx"
 #include "options.hxx"
 #include "common.hxx"
 
@@ -25,6 +28,8 @@ using namespace std;
 using namespace tglng;
 
 static void parseCmdlineArgs(unsigned, const char*const*);
+static void executePrimaryInput(Interpreter&, wistream&);
+static void executePrimaryInput(Interpreter&, const string&);
 
 int main(int argc, const char*const* argv) {
   wstring out;
@@ -63,14 +68,68 @@ int main(int argc, const char*const* argv) {
     }
   }
 
-  if (interp.exec(out, wcin, Interpreter::ParseModeLiteral)) {
-    wcout << out;
-    Interpreter::freeGlobalBindings();
-    return 0;
-  } else {
-    wcerr << L"Failed." << endl;
-    return EXIT_EXEC_ERROR_IN_INPUT;
+  if (scriptInputs.empty())
+    executePrimaryInput(interp, wcin);
+  else
+    for (std::list<string>::const_iterator it = scriptInputs.begin();
+         it != scriptInputs.end(); ++it)
+      executePrimaryInput(interp, *it);
+
+  Interpreter::freeGlobalBindings();
+  return 0;
+}
+
+static void executePrimaryInput(Interpreter& interp, const string& filename) {
+  wifstream in(filename.c_str());
+  if (!in) {
+    cerr << "Could not open " << filename << ": " << strerror(errno) << endl;
+    exit(EXIT_IO_ERROR);
   }
+
+  executePrimaryInput(interp, in);
+}
+
+static void executePrimaryInput(Interpreter& interp, wistream& in) {
+  wstring text;
+  Command* root = NULL;
+  unsigned offset = 0;
+
+  //Read all text to EOF (either real or UNIX)
+  getline(in, text, L'\4');
+
+  if (in.fail() && !in.eof()) {
+    cerr << "Error reading input stream: " << strerror(errno) << endl;
+    exit(EXIT_IO_ERROR);
+  }
+
+  switch (interp.parseAll(root, text, offset, Interpreter::ParseModeLiteral)) {
+  case ContinueParsing: abort(); //Shouldn't happen
+  case StopEndOfInput:
+    break; //OK
+
+  case StopCloseParen:
+  case StopCloseBracket:
+  case StopCloseBrace:
+    interp.error(L"Unexpected closing parentheses, bracket, or brace.",
+                 text, offset-1 /* -1 for back to command char */);
+
+    /* Fall through */
+
+  case ParseError:
+    if (root) delete root;
+    exit(EXIT_PARSE_ERROR_IN_INPUT);
+  }
+
+  if (!dryRun) {
+    wstring out;
+    bool res = interp.exec(out, root);
+
+    if (!res) exit(EXIT_EXEC_ERROR_IN_INPUT);
+
+    wcout << out;
+  }
+
+  delete root;
 }
 
 static void printUsage(bool);
@@ -135,12 +194,7 @@ static void parseCmdlineArgs(unsigned argc, const char*const* argv) {
       break;
 
     case 'e':
-      if (!ntbstowstr(wstr, optarg)) {
-        wcerr << L"Unable to decode option for -e or --script" << endl;
-        exit(EXIT_PLATFORM_ERROR);
-      }
-
-      scriptInputs.push_back(wstr);
+      scriptInputs.push_back(std::string(optarg));
       break;
 
     case 'D':
