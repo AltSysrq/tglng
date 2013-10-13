@@ -143,5 +143,7 @@ namespace tglng {
     free(const_cast<char*>(cwd));
 
     readUserConfiguration(interp);
+
+    interp.registers = initialRegisters;
   }
 }
