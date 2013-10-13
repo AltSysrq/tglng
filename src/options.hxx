@@ -6,9 +6,9 @@
 #include <map>
 
 namespace tglng {
-  extern std::wstring operationalFile;
+  extern std::string operationalFile;
   extern bool implicitChdir;
-  extern std::wstring userConfigs;
+  extern std::list<std::string> userConfigs;
   extern bool enableSystemConfig;
   extern std::list<std::string> scriptInputs;
   extern std::map<wchar_t,std::wstring> initialRegisters;

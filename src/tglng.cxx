@@ -170,10 +170,7 @@ static void parseCmdlineArgs(unsigned argc, const char*const* argv) {
       break;
 
     case 'f':
-      if (!ntbstowstr(operationalFile, optarg)) {
-        wcerr << L"Unable to decode option for -f or --file" << endl;
-        exit(EXIT_PLATFORM_ERROR);
-      }
+      operationalFile = optarg;
       break;
 
     case 'H':
@@ -181,12 +178,7 @@ static void parseCmdlineArgs(unsigned argc, const char*const* argv) {
       break;
 
     case 'c':
-      if (!ntbstowstr(wstr, optarg)) {
-        wcerr << L"Unable to decode option for -c or --config" << endl;
-        exit(EXIT_PLATFORM_ERROR);
-      }
-
-      tglng::list::lappend(userConfigs, wstr);
+      userConfigs.push_back(std::string(optarg));
       break;
 
     case 'C':

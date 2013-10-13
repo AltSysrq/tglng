@@ -5,9 +5,9 @@
 #include "options.hxx"
 
 namespace tglng {
-  std::wstring operationalFile(L"");
+  std::string operationalFile("");
   bool implicitChdir = true;
-  std::wstring userConfigs(L"");
+  std::list<std::string> userConfigs;
   bool enableSystemConfig = true;
   std::list<std::string> scriptInputs;
   std::map<wchar_t,std::wstring> initialRegisters;

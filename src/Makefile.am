@@ -3,6 +3,7 @@ AM_CXXFLAGS=-Wall
 bin_PROGRAMS = tglng
 tglng_SOURCES = \
  tglng.cxx \
+ startup.cxx \
  options.cxx \
  interp.cxx \
  common.cxx \
