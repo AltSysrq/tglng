@@ -8,3 +8,5 @@ doc/README.pdf: README doc/tglng.1
 	a2x -L -D doc --doctype manpage --format pdf README
 
 docs: doc/tglng.1 doc/README.pdf
+
+nobase_sysconf_DATA = tglngrc
