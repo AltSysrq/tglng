@@ -220,7 +220,7 @@ namespace tglng {
   unsigned Regex::groupCount() const {
     //Elements in the middle may be unmatched if that particular group was
     //excluded, so search for the last group.
-    unsigned last;
+    unsigned last = ~0;
     for (unsigned i = 0; i < MAX_MATCHES; ++i)
       if (-1 != data.matches[i].rm_so)
         last = i;

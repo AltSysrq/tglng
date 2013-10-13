@@ -242,7 +242,10 @@ namespace tglng {
       argv[0] = const_cast<char*>("/bin/sh");
     }
 
-    signed exitStatus;
+    /* Always initiialised by calling invoke_external(), but initialise it
+     * anyway because some compilers complain that it isn't initialised.
+     */
+    signed exitStatus = (1 << 31);
     if (!invoke_external(out[0], exitStatus, argv, in[1])) {
       return false;
     }
