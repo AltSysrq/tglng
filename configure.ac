@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.6])
-AC_INIT([TGLNG], [0.0.1], [jasonlingle@yahoo.com])
+AC_INIT([TGLNG], [1.0.0], [jason@lin.gl])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/tglng.cxx])
 AC_CONFIG_HEADERS([config.h])
