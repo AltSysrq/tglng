@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <cerrno>
 #include <cstring>
+#include <cstdlib>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
