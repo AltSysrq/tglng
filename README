@@ -2157,6 +2157,16 @@ commands. If it is not set, ``/bin/sh'' is assumed.
 
 EXIT STATUS
 -----------
-tglng exits with code 0 if no errors occurred, or non-zero
-otherwise. Eventually, the non-zero error codes will be meaningful to the
-caller.
+The possible exit stati for TglNG are summarised in the following table.
+
+|===============================================================
+| 0     | Success
+| 1     | Syntax error in system configuration or user library
+| 2     | Syntax error in input
+| 3     | Execution error in system configuration or user library
+| 4     | Execution error in input
+| 71    | Miscelaneous platform error (encoding, file not found, etc)
+| 74    | Unexpected I/O error
+| 64    | Usage error
+| 70    | Serious internal problem
+|===============================================================
