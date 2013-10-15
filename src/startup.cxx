@@ -34,7 +34,7 @@ namespace tglng {
   static void chdirToFilename() {
     string filenameDir = dirname(operationalFile);
     if (!filenameDir.empty() && implicitChdir) {
-      if (!chdir(filenameDir.c_str())) {
+      if (chdir(filenameDir.c_str())) {
         cerr << "Failed to chdir() to " << filenameDir
              << ": " << strerror(errno);
         exit(EXIT_PLATFORM_ERROR);
