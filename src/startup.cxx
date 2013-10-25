@@ -131,7 +131,7 @@ namespace tglng {
     slurpSet(knownDirs, homeRel(".tglng_known"));
     slurpSet(permittedDirs, homeRel(".tglng_permitted"));
 
-    const char* cwd = getcwd(NULL, ~0);
+    const char* cwd = getcwd(NULL, 0);
     if (!cwd) {
       cerr << "getcwd() failed: " << strerror(errno) << endl;
       exit(EXIT_PLATFORM_ERROR);
